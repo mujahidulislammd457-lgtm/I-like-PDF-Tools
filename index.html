@@ -1,4 +1,4 @@
-f<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -419,6 +419,89 @@ f<!DOCTYPE html>
             margin-top: auto;
         }
 
+        /* Tool Detail Page */
+        .tool-detail {
+            display: none;
+            padding: 40px 0;
+        }
+
+        .tool-detail.active {
+            display: block;
+        }
+
+        .tool-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .tool-header h1 {
+            font-size: 2.5rem;
+            color: var(--accent-primary);
+        }
+
+        .tool-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .tool-description {
+            background: linear-gradient(145deg, var(--bg-tertiary), #2f3245);
+            padding: 30px;
+            border-radius: var(--card-radius);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .tool-description h2 {
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+        }
+
+        .tool-actions {
+            background: linear-gradient(145deg, var(--bg-tertiary), #2f3245);
+            padding: 30px;
+            border-radius: var(--card-radius);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .tool-actions h2 {
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--accent-primary);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .upload-area:hover {
+            background-color: rgba(255, 215, 0, 0.1);
+        }
+
+        .upload-area i {
+            font-size: 3rem;
+            color: var(--accent-primary);
+            margin-bottom: 15px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .back-button {
+            margin-top: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         /* About Section */
         .about {
             background: linear-gradient(to bottom, #25253a, #2a2b40);
@@ -751,6 +834,10 @@ f<!DOCTYPE html>
             .footer-content {
                 grid-template-columns: 1fr 1fr;
             }
+            
+            .tool-content {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
@@ -830,6 +917,10 @@ f<!DOCTYPE html>
                 height: 40px;
                 font-size: 1rem;
             }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -873,203 +964,211 @@ f<!DOCTYPE html>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container hero-content">
-            <h1>Advanced PDF Tools at Your Fingertips</h1>
-            <p>Edit, convert, merge, split, compress, and transform your PDF files with our powerful online toolkit. No installation needed - completely free!</p>
-            <div class="hero-buttons">
-                <a href="#tools" class="btn">Explore Tools</a>
-                <a href="#contact" class="btn">Get Help</a>
+    <!-- Main Content -->
+    <main id="main-content">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container hero-content">
+                <h1>Advanced PDF Tools at Your Fingertips</h1>
+                <p>Edit, convert, merge, split, compress, and transform your PDF files with our powerful online toolkit. No installation needed - completely free!</p>
+                <div class="hero-buttons">
+                    <a href="#tools" class="btn">Explore Tools</a>
+                    <a href="#contact" class="btn">Get Help</a>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Tools Section -->
-    <section id="tools" class="tools-section">
-        <div class="container">
-            <h2 class="section-title">Our PDF Toolkit</h2>
-            <p class="section-subtitle">Access 50+ powerful tools to handle all your PDF needs. Everything works directly in your browser - no uploads to servers required.</p>
-            
-            <div class="search-filter">
-                <button class="filter-btn active" data-filter="all">All Tools</button>
-                <button class="filter-btn" data-filter="convert">Conversion</button>
-                <button class="filter-btn" data-filter="edit">Editing</button>
-                <button class="filter-btn" data-filter="security">Security</button>
-                <button class="filter-btn" data-filter="other">Other</button>
+        <!-- Tools Section -->
+        <section id="tools" class="tools-section">
+            <div class="container">
+                <h2 class="section-title">Our PDF Toolkit</h2>
+                <p class="section-subtitle">Access 50+ powerful tools to handle all your PDF needs. Everything works directly in your browser - no uploads to servers required.</p>
+                
+                <div class="search-filter">
+                    <button class="filter-btn active" data-filter="all">All Tools</button>
+                    <button class="filter-btn" data-filter="convert">Conversion</button>
+                    <button class="filter-btn" data-filter="edit">Editing</button>
+                    <button class="filter-btn" data-filter="security">Security</button>
+                    <button class="filter-btn" data-filter="other">Other</button>
+                </div>
+                
+                <div class="tools-grid" id="toolsGrid">
+                    <!-- Tool cards will be generated by JavaScript -->
+                </div>
             </div>
-            
-            <div class="tools-grid" id="toolsGrid">
-                <!-- Tool cards will be generated by JavaScript -->
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- About Section -->
-    <section id="about" class="about">
-        <div class="container">
-            <h2 class="section-title">About I Like PDF Tools</h2>
-            <p class="section-subtitle">Discover the story behind our powerful PDF processing platform and our mission to make document management accessible to everyone.</p>
-            
-            <div class="about-content">
-                <p>Welcome to <span class="highlight">I Like PDF Tools</span>, your comprehensive solution for all PDF-related tasks. Our platform was born out of a necessity for simple, accessible, and powerful PDF manipulation tools that work directly in your browser without compromising your privacy.</p>
-                
-                <p>In today's digital world, PDF documents have become the standard for sharing information while preserving formatting across different devices and platforms. However, working with PDFs often requires expensive software or online services that upload your sensitive documents to their servers. We set out to change that.</p>
-                
-                <p>Our team of developers has created a suite of tools that processes your files entirely client-side, meaning your documents never leave your computer. This approach ensures maximum privacy and security for your sensitive documents while providing lightning-fast performance.</p>
-                
-                <p>From basic operations like <span class="highlight">Merge PDFs</span> and <span class="highlight">Split PDF</span> to advanced features like <span class="highlight">OCR (text recognition)</span> and <span class="highlight">Digital Signature</span> support, our toolkit covers everything you might need. Whether you're a student, professional, or occasional user, our intuitive interface makes complex PDF operations simple.</p>
-                
-                <p>We're particularly proud of our <span class="highlight">PDF Compression</span> tools that help reduce file sizes without significant quality loss, making it easier to share documents via email or messaging platforms. Our <span class="highlight">Convert PDF to Word</span> feature accurately preserves formatting when transforming documents into editable formats.</p>
-                
-                <p>What sets us apart is our commitment to continuous improvement. We regularly update our tools with new features and enhancements based on user feedback. Recent additions include <span class="highlight">PDF to Excel conversion</span>, <span class="highlight">Redact Text</span> for sensitive information, and <span class="highlight">Export Attachments</span> capabilities.</p>
-                
-                <p>Accessibility is at the core of our philosophy. All our tools are completely free to use, with no hidden fees or premium paywalls. We believe that basic document manipulation should be accessible to everyone, regardless of their budget or technical expertise.</p>
-                
-                <p>Looking ahead, we're exploring integrating AI capabilities to make PDF processing even smarter, with features like automated document classification, smart form recognition, and content summarization. Our roadmap also includes mobile apps for on-the-go PDF management while maintaining the same client-side processing principles.</p>
-                
-                <p>We thank our growing community of users who have made <span class="highlight">I Like PDF Tools</span> one of the most trusted names in online PDF manipulation. Your feedback and suggestions continue to shape our platform and drive innovation.</p>
-            </div>
+        <!-- Tool Detail Sections (initially hidden) -->
+        <div id="tool-details">
+            <!-- Individual tool detail sections will be generated by JavaScript -->
         </div>
-    </section>
 
-    <!-- Article Section -->
-    <section id="article" class="article">
-        <div class="container">
-            <h2 class="section-title">The Comprehensive Guide to PDF Manipulation</h2>
-            <p class="section-subtitle">Exploring the capabilities of modern PDF tools and how they can transform your document workflow</p>
-            
-            <div class="article-content">
-                <p>In the digital age, Portable Document Format (PDF) files have become ubiquitous for sharing documents while preserving their formatting across different devices and platforms. However, many users struggle with manipulating PDFs once they're created. This is where advanced <span class="highlight">PDF tools</span> come into play, offering capabilities far beyond simple viewing.</p>
+        <!-- About Section -->
+        <section id="about" class="about">
+            <div class="container">
+                <h2 class="section-title">About I Like PDF Tools</h2>
+                <p class="section-subtitle">Discover the story behind our powerful PDF processing platform and our mission to make document management accessible to everyone.</p>
                 
-                <p>One of the most sought-after functionalities is the ability to <span class="highlight">Merge PDFs</span> into a single document. This is particularly useful for professionals who need to combine multiple reports, invoices, or chapters into a unified file. Similarly, <span class="highlight">Split PDF</span> capabilities allow extracting specific pages or sections from larger documents, enabling targeted sharing of relevant content.</p>
-                
-                <p>Document conversion represents another critical category of PDF tools. The ability to <span class="highlight">Convert PDF to Word</span> (DOCX) enables users to recover editable content from what would otherwise be a static document. This is invaluable for repurposing content or making changes when the original source files are unavailable. Likewise, <span class="highlight">Convert PDF to Excel</span> (XLSX) extraction allows pulling tabular data from PDF reports into spreadsheet format for further analysis.</p>
-                
-                <p>For professionals working with multimedia content, conversion tools like <span class="highlight">JPG/PNG to PDF</span> and <span class="highlight">PDF to JPG/PNG</span> provide essential flexibility in moving between image and document formats. These capabilities are particularly useful for photographers, designers, and marketing professionals who need to present visual content in different contexts.</p>
-                
-                <p>Advanced editing features like <span class="highlight">Add Watermark</span>, <span class="highlight">Rotate PDF pages</span>, and <span class="highlight">Add Page Numbers</span> provide professional finishing touches to documents. Watermarks can protect intellectual property or indicate document status, while proper page numbering ensures readability in longer documents.</p>
-                
-                <p>Security features have become increasingly important in PDF manipulation. Tools for <span class="highlight">Add/Remove Password</span> protection help balance convenience and security based on document sensitivity. <span class="highlight">Remove Metadata</span> capabilities allow stripping potentially sensitive information hidden within documents before sharing.</p>
-                
-                <p>For legal and compliance purposes, <span class="highlight">Redact Text</span> functionality provides permanent removal of sensitive information, going beyond simple deletion to ensure content cannot be recovered. <span class="highlight">Sign with Digital Certificate</span> and <span class="highlight">Verify Digital Signature</span> tools enable secure electronic signing and authentication of documents.</p>
-                
-                <p>Form processing represents another powerful category of PDF tools. <span class="highlight">Extract Form Fields</span>, <span class="highlight">Create Fillable Form</span>, and <span class="highlight">Fill Form Fields</span> capabilities transform static PDFs into interactive documents. This is particularly valuable for organizations that rely on standardized forms for applications, surveys, or data collection.</p>
-                
-                <p>Document optimization tools like <span class="highlight">Compress PDF</span>, <span class="highlight">Reduce PDF Size</span>, and <span class="highlight">Compress Embedded Images</span> help manage file sizes for storage and sharing efficiency. These tools employ various techniques from image compression to font optimization to reduce file sizes while maintaining acceptable quality.</p>
-                
-                <p>Advanced users benefit from specialized tools like <span class="highlight">OCR (Optical Character Recognition)</span> which converts scanned documents into searchable and editable text. <span class="highlight">PDF to HTML</span> conversion enables repurposing document content for web platforms, while <span class="highlight">Export/Import Attachments</span> manages embedded files within PDF documents.</p>
-                
-                <p>Accessibility features like <span class="highlight">Extract Text</span> capabilities make content available to screen readers and other assistive technologies. <span class="highlight">Convert to PDF/A</span> ensures long-term preservation and accessibility compliance for archival documents.</p>
-                
-                <p>As PDF technology continues to evolve, we can expect even more sophisticated manipulation capabilities to emerge. Machine learning and artificial intelligence are already being integrated to automate complex tasks like document classification, data extraction, and intelligent form recognition.</p>
-                
-                <p>The future of PDF tools lies in seamless integration with cloud services, collaborative editing capabilities, and even more powerful mobile applications. As workflows become increasingly digital and distributed, the ability to manipulate PDFs effectively will remain an essential skill for professionals across industries.</p>
-                
-                <p>At <span class="highlight">I Like PDF Tools</span>, we're committed to staying at the forefront of these developments, continually enhancing our toolkit to meet the evolving needs of our users. Whether you're a student, professional, or casual user, understanding and utilizing these PDF manipulation capabilities can significantly improve your digital document workflow.</p>
+                <div class="about-content">
+                    <p>Welcome to <span class="highlight">I Like PDF Tools</span>, your comprehensive solution for all PDF-related tasks. Our platform was born out of a necessity for simple, accessible, and powerful PDF manipulation tools that work directly in your browser without compromising your privacy.</p>
+                    
+                    <p>In today's digital world, PDF documents have become the standard for sharing information while preserving formatting across different devices and platforms. However, working with PDFs often requires expensive software or online services that upload your sensitive documents to their servers. We set out to change that.</p>
+                    
+                    <p>Our team of developers has created a suite of tools that processes your files entirely client-side, meaning your documents never leave your computer. This approach ensures maximum privacy and security for your sensitive documents while providing lightning-fast performance.</p>
+                    
+                    <p>From basic operations like <span class="highlight">Merge PDFs</span> and <span class="highlight">Split PDF</span> to advanced features like <span class="highlight">OCR (text recognition)</span> and <span class="highlight">Digital Signature</span> support, our toolkit covers everything you might need. Whether you're a student, professional, or occasional user, our intuitive interface makes complex PDF operations simple.</p>
+                    
+                    <p>We're particularly proud of our <span class="highlight">PDF Compression</span> tools that help reduce file sizes without significant quality loss, making it easier to share documents via email or messaging platforms. Our <span class="highlight">Convert PDF to Word</span> feature accurately preserves formatting when transforming documents into editable formats.</p>
+                    
+                    <p>What sets us apart is our commitment to continuous improvement. We regularly update our tools with new features and enhancements based on user feedback. Recent additions include <span class="highlight">PDF to Excel conversion</span>, <span class="highlight">Redact Text</span> for sensitive information, and <span class="highlight">Export Attachments</span> capabilities.</p>
+                    
+                    <p>Accessibility is at the core of our philosophy. All our tools are completely free to use, with no hidden fees or premium paywalls. We believe that basic document manipulation should be accessible to everyone, regardless of their budget or technical expertise.</p>
+                    
+                    <p>Looking ahead, we're exploring integrating AI capabilities to make PDF processing even smarter, with features like automated document classification, smart form recognition, and content summarization. Our roadmap also includes mobile apps for on-the-go PDF management while maintaining the same client-side processing principles.</p>
+                    
+                    <p>We thank our growing community of users who have made <span class="highlight">I Like PDF Tools</span> one of the most trusted names in online PDF manipulation. Your feedback and suggestions continue to shape our platform and drive innovation.</p>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Testimonials Section -->
-    <section id="testimonials" class="testimonials">
-        <div class="container">
-            <h2 class="section-title">What Our Users Say</h2>
-            <p class="section-subtitle">Discover why thousands of users trust I Like PDF Tools for their document needs</p>
-            
-            <div class="testimonials-grid">
-                <div class="testimonial-card">
-                    <div class="testimonial-text">
-                        "The OCR tool saved me days of work! I had scanned documents that needed editing, and this tool converted them perfectly."
+        <!-- Article Section -->
+        <section id="article" class="article">
+            <div class="container">
+                <h2 class="section-title">The Comprehensive Guide to PDF Manipulation</h2>
+                <p class="section-subtitle">Exploring the capabilities of modern PDF tools and how they can transform your document workflow</p>
+                
+                <div class="article-content">
+                    <p>In the digital age, Portable Document Format (PDF) files have become ubiquitous for sharing documents while preserving their formatting across different devices and platforms. However, many users struggle with manipulating PDFs once they're created. This is where advanced <span class="highlight">PDF tools</span> come into play, offering capabilities far beyond simple viewing.</p>
+                    
+                    <p>One of the most sought-after functionalities is the ability to <span class="highlight">Merge PDFs</span> into a single document. This is particularly useful for professionals who need to combine multiple reports, invoices, or chapters into a unified file. Similarly, <span class="highlight">Split PDF</span> capabilities allow extracting specific pages or sections from larger documents, enabling targeted sharing of relevant content.</p>
+                    
+                    <p>Document conversion represents another critical category of PDF tools. The ability to <span class="highlight">Convert PDF to Word</span> (DOCX) enables users to recover editable content from what would otherwise be a static document. This is invaluable for repurposing content or making changes when the original source files are unavailable. Likewise, <span class="highlight">Convert PDF to Excel</span> (XLSX) extraction allows pulling tabular data from PDF reports into spreadsheet format for further analysis.</p>
+                    
+                    <p>For professionals working with multimedia content, conversion tools like <span class="highlight">JPG/PNG to PDF</span> and <span class="highlight">PDF to JPG/PNG</span> provide essential flexibility in moving between image and document formats. These capabilities are particularly useful for photographers, designers, and marketing professionals who need to present visual content in different contexts.</p>
+                    
+                    <p>Advanced editing features like <span class="highlight">Add Watermark</span>, <span class="highlight">Rotate PDF pages</span>, and <span class="highlight">Add Page Numbers</span> provide professional finishing touches to documents. Watermarks can protect intellectual property or indicate document status, while proper page numbering ensures readability in longer documents.</p>
+                    
+                    <p>Security features have become increasingly important in PDF manipulation. Tools for <span class="highlight">Add/Remove Password</span> protection help balance convenience and security based on document sensitivity. <span class="highlight">Remove Metadata</span> capabilities allow stripping potentially sensitive information hidden within documents before sharing.</p>
+                    
+                    <p>For legal and compliance purposes, <span class="highlight">Redact Text</span> functionality provides permanent removal of sensitive information, going beyond simple deletion to ensure content cannot be recovered. <span class="highlight">Sign with Digital Certificate</span> and <span class="highlight">Verify Digital Signature</span> tools enable secure electronic signing and authentication of documents.</p>
+                    
+                    <p>Form processing represents another powerful category of PDF tools. <span class="highlight">Extract Form Fields</span>, <span class="highlight">Create Fillable Form</span>, and <span class="highlight">Fill Form Fields</span> capabilities transform static PDFs into interactive documents. This is particularly valuable for organizations that rely on standardized forms for applications, surveys, or data collection.</p>
+                    
+                    <p>Document optimization tools like <span class="highlight">Compress PDF</span>, <span class="highlight">Reduce PDF Size</span>, and <span class="highlight">Compress Embedded Images</span> help manage file sizes for storage and sharing efficiency. These tools employ various techniques from image compression to font optimization to reduce file sizes while maintaining acceptable quality.</p>
+                    
+                    <p>Advanced users benefit from specialized tools like <span class="highlight">OCR (Optical Character Recognition)</span> which converts scanned documents into searchable and editable text. <span class="highlight">PDF to HTML</span> conversion enables repurposing document content for web platforms, while <span class="highlight">Export/Import Attachments</span> manages embedded files within PDF documents.</p>
+                    
+                    <p>Accessibility features like <span class="highlight">Extract Text</span> capabilities make content available to screen readers and other assistive technologies. <span class="highlight">Convert to PDF/A</span> ensures long-term preservation and accessibility compliance for archival documents.</p>
+                    
+                    <p>As PDF technology continues to evolve, we can expect even more sophisticated manipulation capabilities to emerge. Machine learning and artificial intelligence are already being integrated to automate complex tasks like document classification, data extraction, and intelligent form recognition.</p>
+                    
+                    <p>The future of PDF tools lies in seamless integration with cloud services, collaborative editing capabilities, and even more powerful mobile applications. As workflows become increasingly digital and distributed, the ability to manipulate PDFs effectively will remain an essential skill for professionals across industries.</p>
+                    
+                    <p>At <span class="highlight">I Like PDF Tools</span>, we're committed to staying at the forefront of these developments, continually enhancing our toolkit to meet the evolving needs of our users. Whether you're a student, professional, or casual user, understanding and utilizing these PDF manipulation capabilities can significantly improve your digital document workflow.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section id="testimonials" class="testimonials">
+            <div class="container">
+                <h2 class="section-title">What Our Users Say</h2>
+                <p class="section-subtitle">Discover why thousands of users trust I Like PDF Tools for their document needs</p>
+                
+                <div class="testimonials-grid">
+                    <div class="testimonial-card">
+                        <div class="testimonial-text">
+                            "The OCR tool saved me days of work! I had scanned documents that needed editing, and this tool converted them perfectly."
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">MJ</div>
+                            <div class="author-details">
+                                <div class="author-name">Michael Johnson</div>
+                                <div class="author-role">Legal Assistant</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">MJ</div>
-                        <div class="author-details">
-                            <div class="author-name">Michael Johnson</div>
-                            <div class="author-role">Legal Assistant</div>
+                    
+                    <div class="testimonial-card">
+                        <div class="testimonial-text">
+                            "I use the Merge PDF and Split PDF tools daily for my work. The interface is intuitive and the processing is lightning fast."
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">SL</div>
+                            <div class="author-details">
+                                <div class="author-name">Sarah Lopez</div>
+                                <div class="author-role">Office Manager</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial-card">
+                        <div class="testimonial-text">
+                            "As a student, I appreciate that these tools are free and work directly in the browser. The PDF to Word conversion is perfect for my research."
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">DK</div>
+                            <div class="author-details">
+                                <div class="author-name">David Kim</div>
+                                <div class="author-role">Graduate Student</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="testimonial-card">
-                    <div class="testimonial-text">
-                        "I use the Merge PDF and Split PDF tools daily for my work. The interface is intuitive and the processing is lightning fast."
-                    </div>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">SL</div>
-                        <div class="author-details">
-                            <div class="author-name">Sarah Lopez</div>
-                            <div class="author-role">Office Manager</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="testimonial-card">
-                    <div class="testimonial-text">
-                        "As a student, I appreciate that these tools are free and work directly in the browser. The PDF to Word conversion is perfect for my research."
-                    </div>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">DK</div>
-                        <div class="author-details">
-                            <div class="author-name">David Kim</div>
-                            <div class="author-role">Graduate Student</div>
-                        </div>
-                    </div>
-                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Contact Section -->
-    <section id="contact" class="contact">
-        <div class="container">
-            <h2 class="section-title">Get In Touch</h2>
-            <p class="section-subtitle">Have questions or need support? Our team is here to help you with all your PDF tool needs.</p>
-            
-            <div class="contact-container">
-                <div class="contact-info">
-                    <h3>Contact Information</h3>
-                    <div class="contact-detail">
-                        <i class="fas fa-envelope"></i>
-                        <span>helpilikepdftools@gmail.com</span>
-                    </div>
-                    <div class="contact-detail">
-                        <i class="fas fa-clock"></i>
-                        <span>Response Time: Within 24 hours</span>
-                    </div>
-                    <div class="contact-detail">
-                        <i class="fas fa-globe"></i>
-                        <span>Available worldwide</span>
-                    </div>
-                    <p>We specialize in helping users get the most out of our PDF tools. Whether you're having trouble with <span class="highlight">Merge PDFs</span>, need advice on <span class="highlight">PDF Compression</span>, or want to learn advanced techniques for <span class="highlight">OCR</span> or <span class="highlight">Digital Signatures</span>, our support team is ready to assist.</p>
-                    <p>For technical issues with specific tools like <span class="highlight">Convert PDF to Word</span> or <span class="highlight">Split PDF</span>, please include details about your document and what error you're experiencing. This will help us resolve your query more efficiently.</p>
-                </div>
+        <!-- Contact Section -->
+        <section id="contact" class="contact">
+            <div class="container">
+                <h2 class="section-title">Get In Touch</h2>
+                <p class="section-subtitle">Have questions or need support? Our team is here to help you with all your PDF tool needs.</p>
                 
-                <div class="contact-form">
-                    <h3>Send us a Message</h3>
-                    <form id="contactForm">
-                        <div class="form-group">
-                            <label for="name">Your Name</label>
-                            <input type="text" id="name" required>
+                <div class="contact-container">
+                    <div class="contact-info">
+                        <h3>Contact Information</h3>
+                        <div class="contact-detail">
+                            <i class="fas fa-envelope"></i>
+                            <span>helpilikepdftools@gmail.com</span>
                         </div>
-                        <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input type="email" id="email" required>
+                        <div class="contact-detail">
+                            <i class="fas fa-clock"></i>
+                            <span>Response Time: Within 24 hours</span>
                         </div>
-                        <div class="form-group">
-                            <label for="subject">Subject</label>
-                            <input type="text" id="subject" required>
+                        <div class="contact-detail">
+                            <i class="fas fa-globe"></i>
+                            <span>Available worldwide</span>
                         </div>
-                        <div class="form-group">
-                            <label for="message">Your Message</label>
-                            <textarea id="message" required></textarea>
-                        </div>
-                        <button type="submit" class="btn">Send Message</button>
-                    </form>
+                        <p>We specialize in helping users get the most out of our PDF tools. Whether you're having trouble with <span class="highlight">Merge PDFs</span>, need advice on <span class="highlight">PDF Compression</span>, or want to learn advanced techniques for <span class="highlight">OCR</span> or <span class="highlight">Digital Signatures</span>, our support team is ready to assist.</p>
+                        <p>For technical issues with specific tools like <span class="highlight">Convert PDF to Word</span> or <span class="highlight">Split PDF</span>, please include details about your document and what error you're experiencing. This will help us resolve your query more efficiently.</p>
+                    </div>
+                    
+                    <div class="contact-form">
+                        <h3>Send us a Message</h3>
+                        <form id="contactForm">
+                            <div class="form-group">
+                                <label for="name">Your Name</label>
+                                <input type="text" id="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="subject">Subject</label>
+                                <input type="text" id="subject" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="message">Your Message</label>
+                                <textarea id="message" required></textarea>
+                            </div>
+                            <button type="submit" class="btn">Send Message</button>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
     <!-- Footer -->
     <footer>
@@ -1100,11 +1199,11 @@ f<!DOCTYPE html>
                 <div class="footer-column">
                     <h3>Popular Tools</h3>
                     <ul class="footer-links">
-                        <li><a href="#">  "merge-pdfs.html" </a></li>
-                        <li><a href="#">Split PDF</a></li>
-                        <li><a href="#">Convert PDF to Word</a></li>
-                        <li><a href="#">Compress PDF</a></li>
-                        <li><a href="#">OCR Tool</a></li>
+                        <li><a href="#" data-tool="Merge PDFs">Merge PDFs</a></li>
+                        <li><a href="#" data-tool="Split PDF">Split PDF</a></li>
+                        <li><a href="#" data-tool="Convert PDF to Word">Convert PDF to Word</a></li>
+                        <li><a href="#" data-tool="Compress PDF">Compress PDF</a></li>
+                        <li><a href="#" data-tool="OCR Tool">OCR Tool</a></li>
                     </ul>
                 </div>
                 
@@ -1191,6 +1290,9 @@ f<!DOCTYPE html>
             // Render tool cards
             renderTools();
             
+            // Generate tool detail pages
+            generateToolDetailPages();
+            
             // Setup event listeners
             document.getElementById('searchInput').addEventListener('input', searchTools);
             document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
@@ -1234,8 +1336,24 @@ f<!DOCTYPE html>
                 });
             });
             
+            // Tool links in footer
+            document.querySelectorAll('a[data-tool]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const toolName = this.getAttribute('data-tool');
+                    showToolDetail(toolName);
+                });
+            });
+            
             // Show/hide scroll to top button
             window.addEventListener('scroll', toggleScrollToTop);
+            
+            // Check if URL has a tool parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const toolParam = urlParams.get('tool');
+            if (toolParam) {
+                showToolDetail(toolParam);
+            }
         });
 
         // Render tool cards
@@ -1255,10 +1373,131 @@ f<!DOCTYPE html>
                     </div>
                     <h3>${tool.name}</h3>
                     <p>${tool.description}</p>
-                    <button class="btn" onclick="handleToolClick('${tool.name}')">Use Tool</button>
+                    <button class="btn" onclick="showToolDetail('${tool.name}')">Use Tool</button>
                 `;
                 toolsGrid.appendChild(toolCard);
             });
+        }
+
+        // Generate tool detail pages
+        function generateToolDetailPages() {
+            const toolDetailsContainer = document.getElementById('tool-details');
+            
+            tools.forEach(tool => {
+                const toolDetail = document.createElement('div');
+                toolDetail.className = 'tool-detail';
+                toolDetail.id = `tool-${tool.name.replace(/\s+/g, '-').toLowerCase()}`;
+                
+                toolDetail.innerHTML = `
+                    <div class="container">
+                        <div class="back-button btn" onclick="hideToolDetail()">
+                            <i class="fas fa-arrow-left"></i> Back to Tools
+                        </div>
+                        
+                        <div class="tool-header">
+                            <div class="tool-icon">
+                                <i class="fas ${tool.icon}"></i>
+                            </div>
+                            <h1>${tool.name}</h1>
+                            <p>${tool.description}</p>
+                        </div>
+                        
+                        <div class="tool-content">
+                            <div class="tool-description">
+                                <h2>About This Tool</h2>
+                                <p>Our ${tool.name} tool provides a powerful and easy way to work with your PDF documents. With our advanced algorithms, you can quickly and efficiently process your files without compromising quality.</p>
+                                <p>This tool works entirely in your browser, meaning your files never leave your computer. This ensures maximum privacy and security for your sensitive documents.</p>
+                                <p>Whether you're a student, professional, or occasional user, our intuitive interface makes complex PDF operations simple and accessible to everyone.</p>
+                            </div>
+                            
+                            <div class="tool-actions">
+                                <h2>Use This Tool</h2>
+                                <div class="upload-area" onclick="handleFileUpload('${tool.name}')">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Click to upload your file or drag and drop</p>
+                                    <p class="small">PDF up to 10MB</p>
+                                </div>
+                                
+                                <div class="action-buttons">
+                                    <button class="btn" onclick="handleToolAction('${tool.name}')">Process Now</button>
+                                    <button class="btn" onclick="showNotification('Feature coming soon!')">Save Settings</button>
+                                </div>
+                                
+                                <div class="tool-tips">
+                                    <h3>Pro Tips:</h3>
+                                    <ul>
+                                        <li>For best results, use high-quality source files</li>
+                                        <li>Make sure you have permission to modify any protected documents</li>
+                                        <li>Save a backup copy before making significant changes</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                toolDetailsContainer.appendChild(toolDetail);
+            });
+        }
+
+        // Show tool detail page
+        function showToolDetail(toolName) {
+            // Hide all sections
+            document.querySelectorAll('section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Hide main content
+            document.getElementById('main-content').style.display = 'none';
+            
+            // Show the selected tool detail
+            const toolDetail = document.getElementById(`tool-${toolName.replace(/\s+/g, '-').toLowerCase()}`);
+            if (toolDetail) {
+                toolDetail.classList.add('active');
+                toolDetail.style.display = 'block';
+                
+                // Update URL without reloading page
+                const newUrl = `${window.location.pathname}?tool=${encodeURIComponent(toolName)}`;
+                window.history.pushState({ tool: toolName }, '', newUrl);
+                
+                // Scroll to top
+                window.scrollTo(0, 0);
+            }
+        }
+
+        // Hide tool detail page
+        function hideToolDetail() {
+            // Hide all tool details
+            document.querySelectorAll('.tool-detail').forEach(detail => {
+                detail.classList.remove('active');
+                detail.style.display = 'none';
+            });
+            
+            // Show all sections
+            document.querySelectorAll('section').forEach(section => {
+                section.style.display = 'block';
+            });
+            
+            // Show main content
+            document.getElementById('main-content').style.display = 'block';
+            
+            // Update URL
+            window.history.pushState({}, '', window.location.pathname);
+            
+            // Scroll to tools section
+            document.getElementById('tools').scrollIntoView();
+        }
+
+        // Handle file upload
+        function handleFileUpload(toolName) {
+            showNotification(`Preparing to upload file for ${toolName}`);
+            // In a real implementation, this would open a file dialog and handle the upload
+        }
+
+        // Handle tool action
+        function handleToolAction(toolName) {
+            showNotification(`Processing your file with ${toolName}`);
+            // In a real implementation, this would process the file
         }
 
         // Search functionality
@@ -1288,12 +1527,6 @@ f<!DOCTYPE html>
             
             const filteredTools = tools.filter(tool => tool.category === category);
             renderTools(filteredTools);
-        }
-
-        // Tool click handler
-        function handleToolClick(toolName) {
-            showNotification(`Opening ${toolName} tool...`);
-            // In a real implementation, this would navigate to the specific tool page
         }
 
         // Mobile menu toggle
