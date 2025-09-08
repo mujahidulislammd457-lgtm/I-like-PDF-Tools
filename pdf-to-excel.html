@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Convert PDF to Excel (XLSX) online. Extract tables from PDF and download as Excel. Free, secure, and mobile-friendly PDF to Excel converter.">
+  <meta name="keywords" content="PDF to Excel, Convert PDF to XLSX, Extract Tables from PDF, Free PDF to Excel Converter, Online PDF Tools">
+  <title>Convert PDF to Excel (XLSX) - I Like PDF Tools</title>
+
+  <style>
+    :root {
+      --bg-dark: #1E1E2F;
+      --primary: #FFD700;
+      --secondary: #2B2D42;
+      --text: #EAEAEA;
+      --card-bg: #2A2A3D;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0px 4px 15px rgba(0,0,0,0.5);
+      width: 100%;
+      max-width: 850px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+      color: var(--primary);
+    }
+
+    .upload-box {
+      border: 2px dashed var(--primary);
+      border-radius: 12px;
+      padding: 25px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background 0.3s ease;
+    }
+    .upload-box:hover { background: rgba(255, 215, 0, 0.05); }
+    .upload-box input { display: none; }
+
+    button {
+      background: var(--primary);
+      border: none;
+      color: #000;
+      font-weight: bold;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s ease;
+      width: 100%;
+      font-size: 1rem;
+      margin-top: 10px;
+    }
+    button:hover { background: #e6c200; }
+
+    .status {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #aaa;
+      text-align: center;
+    }
+
+    .preview {
+      margin-top: 20px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #111;
+      color: var(--text);
+    }
+    th, td {
+      border: 1px solid var(--primary);
+      padding: 8px;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+    th { background: var(--secondary); }
+
+    .download-link {
+      display: none;
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .download-link a {
+      color: var(--primary);
+      font-weight: bold;
+      text-decoration: none;
+      border: 1px solid var(--primary);
+      padding: 10px 15px;
+      border-radius: 8px;
+      transition: 0.3s ease;
+    }
+    .download-link a:hover { background: var(--primary); color: #000; }
+
+    /* Mobile responsive */
+    @media (max-width: 600px) {
+      h1 { font-size: 1.5rem; }
+      .upload-box { padding: 20px; }
+      button { font-size: 0.9rem; padding: 10px; }
+      table { font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Convert PDF to Excel (XLSX)</h1>
+
+    <div class="upload-box" onclick="document.getElementById('pdfUpload').click()">
+      <p>Click or drag & drop to upload PDF</p>
+      <input type="file" id="pdfUpload" accept="application/pdf">
+    </div>
+
+    <button onclick="convertPDFtoExcel()">Convert PDF to Excel</button>
+    <div class="status" id="status">No file uploaded yet.</div>
+
+    <div class="preview" id="preview"></div>
+
+    <div class="download-link" id="downloadLink">
+      <a id="downloadExcel" href="#">Download Excel (XLSX)</a>
+    </div>
+  </div>
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfjs-dist/2.16.105/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <script>
+    let uploadedFile = null;
+
+    document.getElementById("pdfUpload").addEventListener("change", function(event) {
+      uploadedFile = event.target.files[0];
+      document.getElementById("status").textContent = uploadedFile
+        ? "File uploaded: " + uploadedFile.name
+        : "No file uploaded yet.";
+    });
+
+    async function convertPDFtoExcel() {
+      if (!uploadedFile) {
+        alert("Please upload a PDF file.");
+        return;
+      }
+
+      document.getElementById("status").textContent = "Extracting tables from PDF...";
+
+      const arrayBuffer = await uploadedFile.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let allData = [];
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+
+        let rows = [];
+        let currentRow = [];
+
+        textContent.items.forEach((item, index) => {
+          currentRow.push(item.str);
+          if ((index + 1) % 5 === 0) { // naive split (5 columns)
+            rows.push(currentRow);
+            currentRow = [];
+          }
+        });
+
+        if (currentRow.length > 0) rows.push(currentRow);
+
+        if (rows.length > 0) {
+          allData = allData.concat(rows);
+        }
+      }
+
+      // Preview Table
+      const preview = document.getElementById("preview");
+      preview.innerHTML = "<h3>Extracted Table Preview</h3>";
+      let table = "<table><thead><tr>";
+      if (allData.length > 0) {
+        allData[0].forEach(col => table += `<th>${col}</th>`);
+        table += "</tr></thead><tbody>";
+        allData.slice(1, 20).forEach(row => {
+          table += "<tr>";
+          row.forEach(cell => table += `<td>${cell}</td>`);
+          table += "</tr>";
+        });
+        table += "</tbody></table>";
+        preview.innerHTML += table;
+      } else {
+        preview.innerHTML += "<p>No tables found in PDF.</p>";
+      }
+
+      // Export XLSX
+      const worksheet = XLSX.utils.aoa_to_sheet(allData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+
+      const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+      const blob = new Blob([wbout], { type: "application/octet-stream" });
+
+      const downloadLink = document.getElementById("downloadExcel");
+      downloadLink.href = URL.createObjectURL(blob);
+      downloadLink.download = "converted.xlsx";
+      document.getElementById("downloadLink").style.display = "block";
+
+      document.getElementById("status").textContent = "Conversion complete!";
+    }
+  </script>
+</body>
+</html>
