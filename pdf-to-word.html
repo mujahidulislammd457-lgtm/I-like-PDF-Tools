@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Convert PDF to Word (DOCX) online. Free, fast, and secure PDF to Word converter with simple upload and one-click download. Mobile-friendly PDF to DOCX tool.">
+  <meta name="keywords" content="Convert PDF to Word, PDF to DOCX, PDF converter, Free PDF to Word online, Extract Word from PDF">
+  <title>Convert PDF to Word (DOCX) - I Like PDF Tools</title>
+
+  <style>
+    :root {
+      --bg-dark: #1E1E2F;
+      --primary: #FFD700;
+      --secondary: #2B2D42;
+      --text: #EAEAEA;
+      --card-bg: #2A2A3D;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0px 4px 15px rgba(0,0,0,0.5);
+      width: 100%;
+      max-width: 650px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+      color: var(--primary);
+    }
+
+    .upload-box {
+      border: 2px dashed var(--primary);
+      border-radius: 12px;
+      padding: 25px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background 0.3s ease;
+    }
+
+    .upload-box:hover {
+      background: rgba(255, 215, 0, 0.05);
+    }
+
+    .upload-box input {
+      display: none;
+    }
+
+    button {
+      background: var(--primary);
+      border: none;
+      color: #000;
+      font-weight: bold;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s ease;
+      width: 100%;
+      font-size: 1rem;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #e6c200;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #aaa;
+      text-align: center;
+    }
+
+    .download-link {
+      display: none;
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .download-link a {
+      color: var(--primary);
+      font-weight: bold;
+      text-decoration: none;
+      border: 1px solid var(--primary);
+      padding: 10px 15px;
+      border-radius: 8px;
+      transition: 0.3s ease;
+    }
+
+    .download-link a:hover {
+      background: var(--primary);
+      color: #000;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+      .upload-box {
+        padding: 20px;
+      }
+      button {
+        font-size: 0.9rem;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Convert PDF to Word (DOCX)</h1>
+
+    <div class="upload-box" onclick="document.getElementById('pdfUpload').click()">
+      <p>Click or drag & drop to upload PDF</p>
+      <input type="file" id="pdfUpload" accept="application/pdf">
+    </div>
+
+    <button onclick="convertPDFtoWord()">Convert to Word</button>
+    <div class="status" id="status">No file uploaded yet.</div>
+
+    <div class="download-link" id="downloadLink">
+      <a id="downloadBtn" href="#" download="converted.docx">Download Word File</a>
+    </div>
+  </div>
+
+  <!-- PDF.js and docx library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfjs-dist/2.16.105/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.2.2/docx.min.js"></script>
+
+  <script>
+    let uploadedFile = null;
+
+    document.getElementById("pdfUpload").addEventListener("change", function(event) {
+      uploadedFile = event.target.files[0];
+      document.getElementById("status").textContent = uploadedFile
+        ? "File uploaded: " + uploadedFile.name
+        : "No file uploaded yet.";
+    });
+
+    async function convertPDFtoWord() {
+      if (!uploadedFile) {
+        alert("Please upload a PDF file.");
+        return;
+      }
+
+      document.getElementById("status").textContent = "Processing PDF...";
+
+      const arrayBuffer = await uploadedFile.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+      const paragraphs = [];
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const text = textContent.items.map(item => item.str).join(" ");
+        paragraphs.push(new docx.Paragraph(text));
+      }
+
+      const doc = new docx.Document({
+        sections: [
+          {
+            properties: {},
+            children: paragraphs
+          }
+        ]
+      });
+
+      const blob = await docx.Packer.toBlob(doc);
+      const url = URL.createObjectURL(blob);
+
+      const downloadBtn = document.getElementById("downloadBtn");
+      downloadBtn.href = url;
+      document.getElementById("downloadLink").style.display = "block";
+      document.getElementById("status").textContent = "Conversion complete!";
+    }
+  </script>
+</body>
+</html>
