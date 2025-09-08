@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Convert JPG and PNG images to PDF online. Free, secure, and fast JPG to PDF and PNG to PDF converter. Upload, arrange, and download PDF easily.">
+  <meta name="keywords" content="JPG to PDF, PNG to PDF, Convert Images to PDF, Free JPG PNG PDF Converter, Image to PDF Online">
+  <title>JPG/PNG to PDF - I Like PDF Tools</title>
+
+  <style>
+    :root {
+      --bg-dark: #1E1E2F;
+      --primary: #FFD700;
+      --secondary: #2B2D42;
+      --text: #EAEAEA;
+      --card-bg: #2A2A3D;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0px 4px 15px rgba(0,0,0,0.5);
+      width: 100%;
+      max-width: 750px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+      color: var(--primary);
+    }
+
+    .upload-box {
+      border: 2px dashed var(--primary);
+      border-radius: 12px;
+      padding: 25px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background 0.3s ease;
+    }
+
+    .upload-box:hover {
+      background: rgba(255, 215, 0, 0.05);
+    }
+
+    .upload-box input {
+      display: none;
+    }
+
+    .preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+
+    .preview img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid var(--primary);
+      cursor: grab;
+    }
+
+    button {
+      background: var(--primary);
+      border: none;
+      color: #000;
+      font-weight: bold;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s ease;
+      width: 100%;
+      font-size: 1rem;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #e6c200;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #aaa;
+      text-align: center;
+    }
+
+    .download-link {
+      display: none;
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .download-link a {
+      color: var(--primary);
+      font-weight: bold;
+      text-decoration: none;
+      border: 1px solid var(--primary);
+      padding: 10px 15px;
+      border-radius: 8px;
+      transition: 0.3s ease;
+    }
+
+    .download-link a:hover {
+      background: var(--primary);
+      color: #000;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+      .upload-box {
+        padding: 20px;
+      }
+      button {
+        font-size: 0.9rem;
+        padding: 10px;
+      }
+      .preview img {
+        width: 80px;
+        height: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>JPG/PNG to PDF</h1>
+
+    <div class="upload-box" onclick="document.getElementById('imageUpload').click()">
+      <p>Click or drag & drop to upload JPG/PNG images</p>
+      <input type="file" id="imageUpload" accept="image/jpeg,image/png" multiple>
+    </div>
+
+    <div class="preview" id="preview"></div>
+
+    <button onclick="convertToPDF()">Convert to PDF</button>
+    <div class="status" id="status">No images uploaded yet.</div>
+
+    <div class="download-link" id="downloadLink">
+      <a id="downloadBtn" href="#" download="converted.pdf">Download PDF</a>
+    </div>
+  </div>
+
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    let uploadedImages = [];
+
+    document.getElementById("imageUpload").addEventListener("change", function(event) {
+      uploadedImages = Array.from(event.target.files);
+      displayPreviews();
+    });
+
+    function displayPreviews() {
+      const preview = document.getElementById("preview");
+      preview.innerHTML = "";
+      uploadedImages.forEach((file, index) => {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        img.draggable = true;
+
+        img.addEventListener("dragstart", (e) => {
+          e.dataTransfer.setData("index", index);
+        });
+
+        img.addEventListener("dragover", (e) => e.preventDefault());
+
+        img.addEventListener("drop", (e) => {
+          e.preventDefault();
+          const draggedIndex = e.dataTransfer.getData("index");
+          const targetIndex = index;
+          [uploadedImages[draggedIndex], uploadedImages[targetIndex]] = [uploadedImages[targetIndex], uploadedImages[draggedIndex]];
+          displayPreviews();
+        });
+
+        preview.appendChild(img);
+      });
+
+      document.getElementById("status").textContent = uploadedImages.length + " image(s) ready.";
+    }
+
+    async function convertToPDF() {
+      if (uploadedImages.length === 0) {
+        alert("Please upload at least one image.");
+        return;
+      }
+
+      document.getElementById("status").textContent = "Converting images to PDF...";
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
+
+      for (let i = 0; i < uploadedImages.length; i++) {
+        const file = uploadedImages[i];
+        const imgData = await readFileAsDataURL(file);
+
+        const img = new Image();
+        img.src = imgData;
+        await img.decode();
+
+        const imgWidth = pdf.internal.pageSize.getWidth();
+        const imgHeight = (img.height * imgWidth) / img.width;
+
+        if (i > 0) pdf.addPage();
+        pdf.addImage(img, "JPEG", 0, 0, imgWidth, imgHeight);
+      }
+
+      const pdfBlob = pdf.output("blob");
+      const url = URL.createObjectURL(pdfBlob);
+
+      const downloadBtn = document.getElementById("downloadBtn");
+      downloadBtn.href = url;
+      document.getElementById("downloadLink").style.display = "block";
+      document.getElementById("status").textContent = "Conversion complete!";
+    }
+
+    function readFileAsDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+  </script>
+</body>
+</html>
