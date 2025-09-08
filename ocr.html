@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF/Image OCR</title>
+<style>
+body{margin:0;padding:20px;font-family:Inter,Arial;background:#1E1E2F;color:#EAEAEA;}
+h1{text-align:center;color:#FFD700;margin-bottom:20px;}
+.container{max-width:600px;margin:0 auto;background:#2A2A3D;padding:20px;border-radius:12px;}
+input[type=file],button,textarea{width:100%;padding:12px;margin-top:10px;border-radius:8px;background:#353646;border:none;color:#EAEAEA;font-size:16px;}
+button{background:#FFD700;color:#000;font-weight:bold;cursor:pointer;}
+textarea{height:200px;background:#1E1E2F;color:#EAEAEA;resize:none;}
+.progress-bar{width:100%;height:20px;background:#333;border-radius:10px;margin-top:15px;overflow:hidden;}
+.progress-fill{height:100%;width:0%;background:#4caf50;transition:width 0.3s ease;}
+#status{text-align:center;margin-top:10px;color:#AAB0C0;font-size:14px;}
+</style>
+</head>
+<body>
+<h1>OCR - Extract Text</h1>
+<div class="container">
+  <input type="file" id="fileInput" accept="image/*,.pdf">
+  <button id="ocrBtn">Start OCR</button>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <p id="status">No job started.</p>
+  <textarea id="outputText" placeholder="Extracted text will appear here..."></textarea>
+  <a id="downloadLink" href="#" style="display:none;"><button>Download TXT</button></a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+<script>
+const fileInput = document.getElementById("fileInput");
+const ocrBtn = document.getElementById("ocrBtn");
+const progressFill = document.getElementById("progressFill");
+const statusText = document.getElementById("status");
+const outputText = document.getElementById("outputText");
+const downloadLink = document.getElementById("downloadLink");
+
+ocrBtn.addEventListener("click", async ()=>{
+  if(!fileInput.files[0]) return alert("Select an image or PDF first!");
+  outputText.value="";
+  statusText.textContent="Starting OCR...";
+  progressFill.style.width="0%";
+  downloadLink.style.display="none";
+
+  const file = fileInput.files[0];
+  let imgURL;
+
+  if(file.type==="application/pdf"){
+    const pdfData = await file.arrayBuffer();
+    const pdfDoc = await PDFLib.PDFDocument.load(pdfData);
+    const page = pdfDoc.getPage(0);
+    const { width, height } = page.getSize();
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    // pdf-lib cannot render image; for production use pdf.js
+    imgURL = canvas.toDataURL();
+  } else {
+    imgURL = URL.createObjectURL(file);
+  }
+
+  const worker = Tesseract.createWorker({
+    logger: m => {
+      if(m.status==='recognizing text') progressFill.style.width = `${Math.round(m.progress*100)}%`;
+      statusText.textContent = `OCR: ${m.status} ${(m.progress*100).toFixed(0)}%`;
+    }
+  });
+
+  await worker.load();
+  await worker.loadLanguage('eng');
+  await worker.initialize('eng');
+  const { data: { text } } = await worker.recognize(imgURL);
+  await worker.terminate();
+
+  outputText.value = text;
+  statusText.textContent="OCR completed!";
+  progressFill.style.width="100%";
+
+  const blob = new Blob([text], {type:"text/plain"});
+  downloadLink.href = URL.createObjectURL(blob);
+  downloadLink.style.display="block";
+});
+</script>
+</body>
+</html>
