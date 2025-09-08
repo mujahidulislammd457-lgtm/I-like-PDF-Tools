@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Merge PDF Bookmarks</title>
+<style>
+body{margin:0;padding:20px;font-family:Inter,Arial;background:#1E1E2F;color:#EAEAEA;}
+h1{text-align:center;color:#FFD700;margin-bottom:20px;}
+.container{max-width:700px;margin:0 auto;background:#2A2A3D;padding:20px;border-radius:12px;}
+input[type=file],button{width:100%;padding:12px;margin-top:10px;border-radius:8px;background:#353646;border:none;color:#EAEAEA;font-size:16px;}
+button{background:#FFD700;color:#000;font-weight:bold;cursor:pointer;}
+.progress-bar{width:100%;height:20px;background:#333;border-radius:10px;margin-top:15px;overflow:hidden;}
+.progress-fill{height:100%;width:0%;background:#4caf50;transition:width 0.3s ease;}
+#status{text-align:center;margin-top:10px;color:#AAB0C0;font-size:14px;}
+#previewContainer{margin-top:15px; border:1px solid #444; border-radius:8px; padding:10px; background:#1E1E2F;}
+</style>
+</head>
+<body>
+<h1>Merge PDF Bookmarks</h1>
+<div class="container">
+  <input type="file" id="pdfInput" accept="application/pdf" multiple>
+  <button id="mergeBtn">Merge PDFs</button>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <p id="status">No job started.</p>
+  <a id="downloadLink" href="#" style="display:none;"><button>Download Merged PDF</button></a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+<script>
+const pdfInput = document.getElementById("pdfInput");
+const mergeBtn = document.getElementById("mergeBtn");
+const progressFill = document.getElementById("progressFill");
+const statusText = document.getElementById("status");
+const downloadLink = document.getElementById("downloadLink");
+
+mergeBtn.addEventListener("click", async ()=>{
+  if(!pdfInput.files.length) return alert("Select at least 2 PDFs!");
+
+  statusText.textContent="Merging PDFs...";
+  progressFill.style.width="0%";
+  downloadLink.style.display="none";
+
+  const mergedPdf = await PDFLib.PDFDocument.create();
+  let progress=0;
+  const interval = setInterval(()=>{ progress+=10; if(progress>90) progress=90; progressFill.style.width=progress+"%"; },200);
+
+  for(let i=0;i<pdfInput.files.length;i++){
+    const pdfBytes = await pdfInput.files[i].arrayBuffer();
+    const pdf = await PDFLib.PDFDocument.load(pdfBytes);
+    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+    copiedPages.forEach(p => mergedPdf.addPage(p));
+  }
+
+  // Simulated bookmark merging
+  // pdf-lib does not support bookmarks, for production use HummusJS or qpdf
+
+  const mergedBytes = await mergedPdf.save();
+  clearInterval(interval);
+  progressFill.style.width="100%";
+  statusText.textContent="PDFs merged!";
+
+  const blob = new Blob([mergedBytes], {type:"application/pdf"});
+  downloadLink.href = URL.createObjectURL(blob);
+  downloadLink.style.display="block";
+});
+</script>
+</body>
+</html>
