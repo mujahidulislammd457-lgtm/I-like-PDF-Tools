@@ -485,95 +485,91 @@
     </footer>
 
     <script>
-        // Tools Data
-        const tools = [
-            { name: "Merge-PDFs.html", description: "Combine multiple PDF files into a single document" },
-            { name: "Split PDF", description: "Extract specific pages or split PDF into multiple files" },
-            { name: "Rotate PDF pages", description: "Rotate pages in your PDF document to correct orientation" },
-            { name: "Convert PDF → Word (DOCX)", description: "Convert PDF files to editable Word documents" },
-            { name: "Add Watermark to PDF", description: "Add text or image watermarks to your PDF files" },
-            { name: "JPG/PNG → PDF", description: "Convert images to PDF documents" },
-            { name: "Convert PDF → PNG images", description: "Export PDF pages as PNG image files" },
-            { name: "Convert PDF → Excel (XLSX)", description: "Extract tables from PDF to Excel spreadsheets" },
-            { name: "PDF → JPG", description: "Convert PDF pages to JPG images" },
-            { name: "Extract images", description: "Extract all images from a PDF document" },
-            { name: "Basic Compress", description: "Reduce PDF file size with basic compression" },
-            { name: "Reduce PDF Size", description: "Advanced compression to minimize PDF file size" },
-            { name: "Add Signature", description: "Draw and place signatures on PDF documents" },
-            { name: "Convert TXT → PDF", description: "Convert text files to PDF format" },
-            { name: "Resize Pages", description: "Change page dimensions in your PDF" },
-            { name: "Download metadata / info", description: "Extract metadata and information from PDF" },
-            { name: "Extract Text", description: "Extract text content from PDF to TXT or Word" },
-            { name: "Remove Pages", description: "Delete selected pages from PDF document" },
-            { name: "Reorder Pages", description: "Drag and drop to rearrange page order" },
-            { name: "Add Page Numbers", description: "Add page numbers to header or footer" },
-            { name: "PDF to HTML", description: "Convert PDF pages to web format" },
-            { name: "Merge Bookmarks", description: "Merge bookmarks and table of contents" },
-            { name: "Flatten Form Fields", description: "Make filled form fields static" },
-            { name: "Add / Remove Password", description: "Password protect or unprotect PDF files" },
-            { name: "Convert to PDF/A", description: "Convert PDF to archival format" },
-            { name: "OCR", description: "Text recognition using tesseract.js WASM" },
-            { name: "Annotate PDF", description: "Draw, highlight, and comment on PDFs locally" },
-            { name: "Repair", description: "Basic file validation and quick-fix suggestions" },
-            { name: "Optimize Fonts", description: "Remove unused or subset fonts in PDF" },
-            { name: "Convert to Grayscale PDF", description: "Convert color PDF to grayscale" },
-            { name: "Crop Pages", description: "Select area of a page to crop" },
-            { name: "Add Header & Footer Text", description: "Add custom text to headers and footers" },
-            { name: "Add Stamp", description: "Add custom image or text stamps" },
-            { name: "Remove Metadata", description: "Strip hidden data from PDF" },
-            { name: "Redact Text", description: "Permanently hide sensitive content" },
-            { name: "Replace Text in PDF", description: "Find and replace text in PDF documents" },
-            { name: "Insert Blank Page(s)", description: "Add blank pages to PDF document" },
-            { name: "Export Attachments from PDF", description: "Extract files attached to PDF" },
-            { name: "Import Attachments to PDF", description: "Add files as attachments to PDF" },
-            { name: "Split PDF by File Size", description: "Split PDF based on file size limits" },
-            { name: "Convert PDF → EPUB", description: "Convert PDF to EPUB ebook format" },
-            { name: "Convert PDF → TIFF images", description: "Export PDF pages as TIFF images" },
-            { name: "Sign with Digital Certificate", description: "Sign PDF with digital certificate" },
-            { name: "Verify Digital Signature", description: "Verify digital signatures in PDF" },
-            { name: "Merge Interactive Forms", description: "Combine interactive form fields" },
-            { name: "Extract Form Fields", description: "Extract form field data from PDF" },
-            { name: "Create Fillable Form", description: "Create fillable forms in PDF" },
-            { name: "Fill Form Fields", description: "Fill interactive form fields in PDF" },
-            { name: "Compress Embedded Images", description: "Compress images embedded in PDF" },
-            { name: "Image Compressor", description: "Compress images before adding to PDF" }
-        ];
+    // Tools Data with redirect links
+    const tools = [
+        { name: "Merge PDFs", description: "Combine multiple PDF files into a single document", link: "merge-pdf.html" },
+        { name: "Split PDF", description: "Extract specific pages or split PDF into multiple files", link: "split-pdf.html" },
+        { name: "Rotate PDF pages", description: "Rotate pages in your PDF document to correct orientation", link: "rotate-pdf.html" },
+        { name: "Convert PDF → Word (DOCX)", description: "Convert PDF files to editable Word documents", link: "pdf-to-word.html" },
+        { name: "Add Watermark to PDF", description: "Add text or image watermarks to your PDF files", link: "add-watermark.html" },
+        { name: "JPG/PNG → PDF", description: "Convert images to PDF documents", link: "image-to-pdf.html" },
+        { name: "Convert PDF → PNG images", description: "Export PDF pages as PNG image files", link: "pdf-to-png.html" },
+        { name: "Convert PDF → Excel (XLSX)", description: "Extract tables from PDF to Excel spreadsheets", link: "pdf-to-excel.html" },
+        { name: "PDF → JPG", description: "Convert PDF pages to JPG images", link: "pdf-to-jpg.html" },
+        { name: "Extract images", description: "Extract all images from a PDF document", link: "extract-images.html" },
+        { name: "Basic Compress", description: "Reduce PDF file size with basic compression", link: "basic-compress.html" },
+        { name: "Reduce PDF Size", description: "Advanced compression to minimize PDF file size", link: "reduce-pdf-size.html" },
+        { name: "Add Signature", description: "Draw and place signatures on PDF documents", link: "add-signature.html" },
+        { name: "Convert TXT → PDF", description: "Convert text files to PDF format", link: "txt-to-pdf.html" },
+        { name: "Resize Pages", description: "Change page dimensions in your PDF", link: "resize-pages.html" },
+        { name: "Download metadata / info", description: "Extract metadata and information from PDF", link: "metadata-info.html" },
+        { name: "Extract Text", description: "Extract text content from PDF to TXT or Word", link: "extract-text.html" },
+        { name: "Remove Pages", description: "Delete selected pages from PDF document", link: "remove-pages.html" },
+        { name: "Reorder Pages", description: "Drag and drop to rearrange page order", link: "reorder-pages.html" },
+        { name: "Add Page Numbers", description: "Add page numbers to header or footer", link: "add-page-numbers.html" },
+        { name: "PDF to HTML", description: "Convert PDF pages to web format", link: "pdf-to-html.html" },
+        { name: "Merge Bookmarks", description: "Merge bookmarks and table of contents", link: "merge-bookmarks.html" },
+        { name: "Flatten Form Fields", description: "Make filled form fields static", link: "flatten-forms.html" },
+        { name: "Add / Remove Password", description: "Password protect or unprotect PDF files", link: "password-protect.html" },
+        { name: "Convert to PDF/A", description: "Convert PDF to archival format", link: "pdf-to-pdfa.html" },
+        { name: "OCR", description: "Text recognition using tesseract.js WASM", link: "ocr.html" },
+        { name: "Annotate PDF", description: "Draw, highlight, and comment on PDFs locally", link: "annotate-pdf.html" },
+        { name: "Repair", description: "Basic file validation and quick-fix suggestions", link: "repair-pdf.html" },
+        { name: "Optimize Fonts", description: "Remove unused or subset fonts in PDF", link: "optimize-fonts.html" },
+        { name: "Convert to Grayscale PDF", description: "Convert color PDF to grayscale", link: "grayscale-pdf.html" },
+        { name: "Crop Pages", description: "Select area of a page to crop", link: "crop-pages.html" },
+        { name: "Add Header & Footer Text", description: "Add custom text to headers and footers", link: "add-header-footer.html" },
+        { name: "Add Stamp", description: "Add custom image or text stamps", link: "add-stamp.html" },
+        { name: "Remove Metadata", description: "Strip hidden data from PDF", link: "remove-metadata.html" },
+        { name: "Redact Text", description: "Permanently hide sensitive content", link: "redact-text.html" },
+        { name: "Replace Text in PDF", description: "Find and replace text in PDF documents", link: "replace-text.html" },
+        { name: "Insert Blank Page(s)", description: "Add blank pages to PDF document", link: "insert-blank.html" },
+        { name: "Export Attachments from PDF", description: "Extract files attached to PDF", link: "export-attachments.html" },
+        { name: "Import Attachments to PDF", description: "Add files as attachments to PDF", link: "import-attachments.html" },
+        { name: "Split PDF by File Size", description: "Split PDF based on file size limits", link: "split-by-size.html" },
+        { name: "Convert PDF → EPUB", description: "Convert PDF to EPUB ebook format", link: "pdf-to-epub.html" },
+        { name: "Convert PDF → TIFF images", description: "Export PDF pages as TIFF images", link: "pdf-to-tiff.html" },
+        { name: "Sign with Digital Certificate", description: "Sign PDF with digital certificate", link: "digital-sign.html" },
+        { name: "Verify Digital Signature", description: "Verify digital signatures in PDF", link: "verify-sign.html" },
+        { name: "Merge Interactive Forms", description: "Combine interactive form fields", link: "merge-forms.html" },
+        { name: "Extract Form Fields", description: "Extract form field data from PDF", link: "extract-forms.html" },
+        { name: "Create Fillable Form", description: "Create fillable forms in PDF", link: "create-fillable.html" },
+        { name: "Fill Form Fields", description: "Fill interactive form fields in PDF", link: "fill-forms.html" },
+        { name: "Compress Embedded Images", description: "Compress images embedded in PDF", link: "compress-images.html" },
+        { name: "Image Compressor", description: "Compress images before adding to PDF", link: "image-compressor.html" }
+    ];
 
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Render tools
-            renderTools();
-            
-            // Setup search functionality
-            document.getElementById('toolSearch').addEventListener('input', function(e) {
-                const searchTerm = e.target.value.toLowerCase();
-                const filteredTools = tools.filter(tool => 
-                    tool.name.toLowerCase().includes(searchTerm) || 
-                    tool.description.toLowerCase().includes(searchTerm)
-                );
-                renderTools(filteredTools);
-            });
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+        renderTools();
+        
+        // Setup search functionality
+        document.getElementById('toolSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredTools = tools.filter(tool => 
+                tool.name.toLowerCase().includes(searchTerm) || 
+                tool.description.toLowerCase().includes(searchTerm)
+            );
+            renderTools(filteredTools);
         });
+    });
 
-        // Function to render tools
-        function renderTools(toolsToRender = tools) {
-            const toolsContainer = document.getElementById('toolsContainer');
-            toolsContainer.innerHTML = '';
-            
-            toolsToRender.forEach(tool => {
-                const toolCard = document.createElement('div');
-                toolCard.className = 'tool-card';
-                toolCard.innerHTML = `
-                    <h3>${tool.name}</h3>
-                    <p>${tool.description}</p>
-                    <button class="tool-btn" onclick="alert('Redirecting to ${Merge-PDFs.html}')">Use Tool</button>
-                    <button class="tool-btn" onclick="alert('Redirecting to ${}')">Use Tool</button>
-                    <button class="tool-btn" onclick="alert('Redirecting to ${}')">Use Tool</button>
-            
-                `;
-                toolsContainer.appendChild(toolCard);
-            });
-        }
-    </script>
+    // Function to render tools
+    function renderTools(toolsToRender = tools) {
+        const toolsContainer = document.getElementById('toolsContainer');
+        toolsContainer.innerHTML = '';
+        
+        toolsToRender.forEach(tool => {
+            const toolCard = document.createElement('div');
+            toolCard.className = 'tool-card';
+            toolCard.innerHTML = `
+                <h3>${tool.name}</h3>
+                <p>${tool.description}</p>
+                <a href="${tool.link}" class="tool-btn">Use Tool</a>
+            `;
+            toolsContainer.appendChild(toolCard);
+        });
+    }
+</script>
 </body>
 </html>
