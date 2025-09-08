@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Page Numbers to PDF</title>
+<style>
+body{margin:0;padding:20px;font-family:Inter,Arial;background:#1E1E2F;color:#EAEAEA;}
+h1{text-align:center;color:#FFD700;margin-bottom:20px;}
+.container{max-width:600px;margin:0 auto;background:#2A2A3D;padding:20px;border-radius:12px;}
+input[type=file],select,input[type=number],input[type=color],button{width:100%;padding:12px;margin-top:10px;border-radius:8px;background:#353646;border:none;color:#EAEAEA;font-size:16px;}
+button{background:#FFD700;color:#000;font-weight:bold;cursor:pointer;}
+.progress-bar{width:100%;height:20px;background:#333;border-radius:10px;margin-top:15px;overflow:hidden;}
+.progress-fill{height:100%;width:0%;background:#4caf50;transition:width 0.3s ease;}
+#status{text-align:center;margin-top:10px;color:#AAB0C0;font-size:14px;}
+</style>
+</head>
+<body>
+<h1>Add Page Numbers</h1>
+<div class="container">
+  <input type="file" id="pdfInput" accept="application/pdf">
+
+  <label>Position:</label>
+  <select id="positionSelect">
+    <option value="footer" selected>Footer</option>
+    <option value="header">Header</option>
+  </select>
+
+  <label>Font Size (pt):</label>
+  <input type="number" id="fontSizeInput" value="12">
+
+  <label>Font Color:</label>
+  <input type="color" id="colorInput" value="#FFFFFF">
+
+  <label>Starting Number:</label>
+  <input type="number" id="startInput" value="1">
+
+  <button id="addBtn">Add Page Numbers</button>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <p id="status">No job started.</p>
+  <a id="downloadLink" href="#" style="display:none;"><button>Download Numbered PDF</button></a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+<script>
+const pdfInput = document.getElementById("pdfInput");
+const positionSelect = document.getElementById("positionSelect");
+const fontSizeInput = document.getElementById("fontSizeInput");
+const colorInput = document.getElementById("colorInput");
+const startInput = document.getElementById("startInput");
+const addBtn = document.getElementById("addBtn");
+const progressFill = document.getElementById("progressFill");
+const statusText = document.getElementById("status");
+const downloadLink = document.getElementById("downloadLink");
+
+addBtn.addEventListener("click", async ()=>{
+  if(!pdfInput.files[0]) return alert("Upload a PDF first!");
+
+  statusText.textContent="Adding page numbers...";
+  progressFill.style.width="0%";
+  downloadLink.style.display="none";
+
+  const pdfBytes = await pdfInput.files[0].arrayBuffer();
+  const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+  const pages = pdfDoc.getPages();
+  const fontSize = parseInt(fontSizeInput.value);
+  const fontColor = PDFLib.rgb(
+    parseInt(colorInput.value.substr(1,2),16)/255,
+    parseInt(colorInput.value.substr(3,2),16)/255,
+    parseInt(colorInput.value.substr(5,2),16)/255
+  );
+  const startNumber = parseInt(startInput.value);
+  const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+
+  let progress=0;
+  const interval = setInterval(()=>{ progress+=20; if(progress>90) progress=90; progressFill.style.width=progress+"%"; },200);
+
+  pages.forEach((page,i)=>{
+    const { width, height } = page.getSize();
+    const text = `${i + startNumber}`;
+    const textWidth = font.widthOfTextAtSize(text,fontSize);
+    const textHeight = fontSize;
+
+    let x = (width - textWidth)/2;
+    let y = positionSelect.value==="footer"?20:height-30;
+
+    page.drawText(text,{x,y,size:fontSize,font,color:fontColor});
+  });
+
+  const pdfBytesNew = await pdfDoc.save();
+  clearInterval(interval);
+  progressFill.style.width="100%";
+  statusText.textContent="Page numbers added!";
+
+  const blob = new Blob([pdfBytesNew],{type:"application/pdf"});
+  downloadLink.href = URL.createObjectURL(blob);
+  downloadLink.style.display="block";
+});
+</script>
+</body>
+</html>
