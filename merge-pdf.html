@@ -1,288 +1,263 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>I Like PDF Tools — Merge PDFs</title>
-  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Merge PDF files online for free. Combine multiple PDF documents into one instantly. Fast, secure, and mobile-friendly PDF merger.">
+  <meta name="keywords" content="Merge PDF, Combine PDFs, Join PDF files, PDF Merger Online, Free PDF Tools">
+  <title>Merge PDF - I Like PDF Tools</title>
+
   <style>
-    :root{
-      --bg:#0f1724; /* dark navy */
-      --card:#0b1220;
-      --muted:#9aa6b2;
-      --accent:#ffd166; /* gold */
-      --glass: rgba(255,255,255,0.03);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    :root {
+      --bg-dark: #1E1E2F;
+      --primary: #FFD700;
+      --secondary: #2B2D42;
+      --text: #EAEAEA;
+      --card-bg: #2A2A3D;
     }
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#071027);color:#e6eef6}
-    .app{max-width:1000px;margin:28px auto;padding:20px}
-    .header{display:flex;gap:16px;align-items:center}
-    .logo{width:52px;height:52px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#ff9f1c);display:flex;align-items:center;justify-content:center;font-weight:700;color:#071027}
-    h1{margin:0;font-size:1.2rem}
-    p.lead{margin:2px 0 14px;color:var(--muted);font-size:0.95rem}
 
-    .tool-card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 6px 18px rgba(0,0,0,0.6);}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-    .uploader{border:1px dashed rgba(255,255,255,0.06);border-radius:10px;padding:18px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
-    .drop{padding:18px;border-radius:8px;background:var(--glass);min-height:92px;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;cursor:pointer}
-    .drop.dragover{background:rgba(255,255,255,0.03);outline:2px solid rgba(255,209,102,0.12)}
-    .controls{display:flex;gap:8px;align-items:center}
-    .btn{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px 14px;border-radius:8px;cursor:pointer}
-    .btn.primary{background:linear-gradient(90deg,var(--accent),#ffb56b);color:#071027;border:0}
+    body {
+      background: var(--bg-dark);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
 
-    .file-list{margin-top:12px;display:flex;flex-direction:column;gap:8px}
-    .file-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:8px;background:rgba(255,255,255,0.02);cursor:grab}
-    .file-item .meta{flex:1}
-    .file-name{font-weight:600}
-    .file-sub{color:var(--muted);font-size:0.85rem}
-    .file-actions{display:flex;gap:8px;align-items:center}
-    .hint{color:var(--muted);font-size:0.9rem}
+    .container {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0px 4px 15px rgba(0,0,0,0.5);
+      width: 100%;
+      max-width: 650px;
+    }
 
-    .preview-wrap{margin-top:16px;display:grid;grid-template-columns:1fr 360px;gap:16px}
-    .preview{background:#071627;border-radius:10px;min-height:420px;display:flex;flex-direction:column}
-    .preview iframe{border-radius:8px;border:0;height:100%;width:100%}
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+      color: var(--primary);
+    }
 
-    .right-panel{display:flex;flex-direction:column;gap:12px}
-    .status{padding:12px;border-radius:8px;background:rgba(255,255,255,0.02)}
+    .upload-box {
+      border: 2px dashed var(--primary);
+      border-radius: 12px;
+      padding: 25px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background 0.3s ease;
+    }
 
-    .small{font-size:0.85rem;color:var(--muted)}
+    .upload-box:hover {
+      background: rgba(255, 215, 0, 0.05);
+    }
 
-    /* responsive */
-    @media (max-width:920px){
-      .preview-wrap{grid-template-columns:1fr}
-      .right-panel{order:2}
+    .upload-box input {
+      display: none;
+    }
+
+    .file-list {
+      list-style: none;
+      margin-bottom: 15px;
+    }
+
+    .file-list li {
+      background: #3A3A50;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 6px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: grab;
+    }
+
+    .file-list li span {
+      flex: 1;
+      text-align: left;
+    }
+
+    .file-list li button {
+      background: crimson;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    button {
+      background: var(--primary);
+      border: none;
+      color: #000;
+      font-weight: bold;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s ease;
+      width: 100%;
+      font-size: 1rem;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #e6c200;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #aaa;
+      text-align: center;
+    }
+
+    .download-link {
+      display: none;
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .download-link a {
+      color: var(--primary);
+      font-weight: bold;
+      text-decoration: none;
+      border: 1px solid var(--primary);
+      padding: 10px 15px;
+      border-radius: 8px;
+      transition: 0.3s ease;
+    }
+
+    .download-link a:hover {
+      background: var(--primary);
+      color: #000;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+      .upload-box {
+        padding: 20px;
+      }
+      button {
+        font-size: 0.9rem;
+        padding: 10px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <div class="header">
-      <div class="logo">IL</div>
-      <div>
-        <h1>I Like PDF Tools — Merge PDFs</h1>
-        <p class="lead">Upload multiple PDFs, reorder them, merge into a single PDF and download. Dark themed, responsive and fast.</p>
-      </div>
+  <div class="container">
+    <h1>Merge PDF Files</h1>
+
+    <div class="upload-box" onclick="document.getElementById('pdfUpload').click()">
+      <p>Click or drag & drop to upload PDF files</p>
+      <input type="file" id="pdfUpload" accept="application/pdf" multiple>
     </div>
 
-    <div style="height:18px"></div>
+    <ul class="file-list" id="fileList"></ul>
 
-    <div class="tool-card">
-      <div class="uploader">
-        <div id="dropZone" class="drop" tabindex="0">
-          <div style="font-weight:600">Drag & drop PDFs here</div>
-          <div class="small">or click to select files (PDF only). Reorder items after upload.</div>
-          <input id="fileInput" type="file" accept="application/pdf" multiple style="display:none" />
-        </div>
-        <div class="controls">
-          <button id="btnAdd" class="btn">Add PDFs</button>
-          <button id="btnMerge" class="btn primary">Merge</button>
-        </div>
-      </div>
+    <button onclick="mergePDFs()">Merge PDFs</button>
+    <div class="status" id="status">No files uploaded yet.</div>
 
-      <div class="file-list" id="fileList" aria-live="polite" style="margin-top:12px"></div>
-
-      <div class="preview-wrap">
-        <div class="preview">
-          <div style="padding:12px;display:flex;justify-content:space-between;align-items:center">
-            <div style="font-weight:700">Merged Preview</div>
-            <div class="small hint">Preview appears after merging</div>
-          </div>
-          <div style="padding:12px;flex:1;display:flex;flex-direction:column">
-            <iframe id="previewFrame" srcdoc="" title="PDF preview" style="flex:1;border-radius:8px;background:#071827"></iframe>
-          </div>
-        </div>
-
-        <div class="right-panel">
-          <div class="status" id="statusBox">Ready. Add PDF files to begin.</div>
-          <div style="display:flex;gap:8px">
-            <a id="downloadBtn" class="btn" style="display:none" href="#" download="merged.pdf">Download Merged PDF</a>
-            <button id="clearBtn" class="btn">Clear</button>
-          </div>
-          <div style="padding:8px;border-radius:8px;background:rgba(255,255,255,0.02)">
-            <div style="font-weight:700;margin-bottom:6px">Options & Limits</div>
-            <div class="small">Supported: PDF only. Max file size: 30 MB per file. Total files: no hard limit but merging large sets may be slow on low-memory devices.</div>
-          </div>
-        </div>
-      </div>
+    <div class="download-link" id="downloadLink">
+      <a id="downloadBtn" href="#" download="merged.pdf">Download Merged PDF</a>
     </div>
-
-    <div style="height:14px"></div>
-
-    <div class="small hint">Tip: Use the drag handles to reorder PDFs. Click Merge, wait for processing message, then preview and download.</div>
   </div>
 
-  <!-- Libraries -->
-  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <!-- pdf-lib -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 
   <script>
-    (function(){
-      const fileInput = document.getElementById('fileInput');
-      const dropZone = document.getElementById('dropZone');
-      const fileList = document.getElementById('fileList');
-      const btnAdd = document.getElementById('btnAdd');
-      const btnMerge = document.getElementById('btnMerge');
-      const statusBox = document.getElementById('statusBox');
-      const previewFrame = document.getElementById('previewFrame');
-      const downloadBtn = document.getElementById('downloadBtn');
-      const clearBtn = document.getElementById('clearBtn');
+    let uploadedFiles = [];
 
-      const MAX_SIZE = 30 * 1024 * 1024; // 30 MB
-      let files = []; // {file, id}
+    const fileInput = document.getElementById("pdfUpload");
+    const fileList = document.getElementById("fileList");
+    const status = document.getElementById("status");
 
-      function humanFileSize(bytes){
-        const thresh = 1024;
-        if (Math.abs(bytes) < thresh) return bytes + ' B';
-        const units = ['KB','MB','GB','TB'];
-        let u = -1;
-        do {bytes /= thresh; ++u;} while(Math.abs(bytes) >= thresh && u < units.length-1);
-        return bytes.toFixed(1)+' '+units[u];
-      }
+    fileInput.addEventListener("change", function(event) {
+      uploadedFiles = Array.from(event.target.files);
+      renderFileList();
+    });
 
-      function addFiles(fileListInput){
-        const arr = Array.from(fileListInput);
-        for(const f of arr){
-          if (f.type !== 'application/pdf'){
-            flashStatus('Unsupported file type: ' + f.name, true); continue;
-          }
-          if (f.size > MAX_SIZE){
-            flashStatus('File too large (>30MB): ' + f.name, true); continue;
-          }
-          const id = 'f_' + Math.random().toString(36).slice(2,9);
-          files.push({file:f,id});
-        }
-        renderList();
-      }
+    function renderFileList() {
+      fileList.innerHTML = "";
+      uploadedFiles.forEach((file, index) => {
+        const li = document.createElement("li");
+        li.draggable = true;
 
-      function renderList(){
-        fileList.innerHTML = '';
-        if (files.length === 0){
-          fileList.innerHTML = '<div class="small hint">No files added yet.</div>';
-          return;
-        }
-        files.forEach((fobj, idx) => {
-          const el = document.createElement('div');
-          el.className = 'file-item';
-          el.setAttribute('data-id', fobj.id);
-          el.innerHTML = `
-            <div style="width:10px;cursor:grab">☰</div>
-            <div class="meta">
-              <div class="file-name">${escapeHtml(fobj.file.name)}</div>
-              <div class="file-sub">${humanFileSize(fobj.file.size)} • ${fobj.file.type}</div>
-            </div>
-            <div class="file-actions">
-              <button class="btn btn-remove" data-id="${fobj.id}">Remove</button>
-            </div>
-          `;
-          fileList.appendChild(el);
+        const span = document.createElement("span");
+        span.textContent = file.name;
+
+        const removeBtn = document.createElement("button");
+        removeBtn.textContent = "Remove";
+        removeBtn.onclick = () => {
+          uploadedFiles.splice(index, 1);
+          renderFileList();
+        };
+
+        li.appendChild(span);
+        li.appendChild(removeBtn);
+        fileList.appendChild(li);
+
+        // Drag-and-drop reorder
+        li.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("index", index);
         });
-
-        // make list sortable
-        if (!fileList._sortable){
-          fileList._sortable = Sortable.create(fileList, {
-            animation:150,
-            handle:'.file-item div:first-child',
-            onEnd: function(evt){
-              const oldIndex = evt.oldIndex; const newIndex = evt.newIndex;
-              if (oldIndex !== newIndex){
-                const moved = files.splice(oldIndex,1)[0];
-                files.splice(newIndex,0,moved);
-                renderList();
-              }
-            }
-          });
-        }
-
-        // attach remove handlers
-        fileList.querySelectorAll('.btn-remove').forEach(btn => {
-          btn.addEventListener('click', ()=>{
-            const id = btn.getAttribute('data-id');
-            files = files.filter(x => x.id !== id);
-            renderList();
-          });
+        li.addEventListener("dragover", e => e.preventDefault());
+        li.addEventListener("drop", e => {
+          const draggedIndex = e.dataTransfer.getData("index");
+          const droppedIndex = index;
+          const draggedFile = uploadedFiles.splice(draggedIndex, 1)[0];
+          uploadedFiles.splice(droppedIndex, 0, draggedFile);
+          renderFileList();
         });
+      });
+
+      status.textContent = uploadedFiles.length 
+        ? uploadedFiles.length + " file(s) ready to merge." 
+        : "No files uploaded yet.";
+    }
+
+    async function mergePDFs() {
+      if (uploadedFiles.length < 2) {
+        alert("Please upload at least two PDF files.");
+        return;
       }
 
-      function escapeHtml(unsafe){
-        return unsafe.replace(/[&<"'`=\/]/g, function(s){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;","/":"&#x2F;","=`":"&#x3D;"})[s]; });
+      status.textContent = "Merging PDFs... Please wait.";
+
+      const mergedPdf = await PDFLib.PDFDocument.create();
+
+      for (const file of uploadedFiles) {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+        const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+        copiedPages.forEach(page => mergedPdf.addPage(page));
       }
 
-      function flashStatus(msg, isError=false){
-        statusBox.textContent = msg;
-        statusBox.style.border = isError ? '1px solid rgba(255,80,80,0.12)' : '1px solid rgba(255,255,255,0.03)';
-      }
+      const pdfBytes = await mergedPdf.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
 
-      // drag & drop
-      ['dragenter','dragover'].forEach(ev =>{
-        dropZone.addEventListener(ev, (e)=>{e.preventDefault();e.stopPropagation();dropZone.classList.add('dragover')});
-      });
-      ['dragleave','drop'].forEach(ev =>{
-        dropZone.addEventListener(ev, (e)=>{e.preventDefault();e.stopPropagation();dropZone.classList.remove('dragover')});
-      });
-      dropZone.addEventListener('drop', (e)=>{
-        const dt = e.dataTransfer; if (!dt) return;
-        addFiles(dt.files);
-      });
-
-      dropZone.addEventListener('click', ()=> fileInput.click());
-      btnAdd.addEventListener('click', ()=> fileInput.click());
-      fileInput.addEventListener('change', (e)=> addFiles(e.target.files));
-
-      btnMerge.addEventListener('click', async ()=>{
-        if (files.length === 0){ flashStatus('Please add at least one PDF to merge.', true); return; }
-        try{
-          btnMerge.disabled = true; btnMerge.textContent = 'Processing PDFs...';
-          flashStatus('Merging ' + files.length + ' PDF(s)...');
-
-          // create new PDF
-          const PDFLib = window.PDFLib;
-          const mergedPdf = await PDFLib.PDFDocument.create();
-
-          for (let i=0;i<files.length;i++){
-            const f = files[i].file;
-            flashStatus(`Loading ${f.name} (${i+1}/${files.length})`);
-            const arr = await f.arrayBuffer();
-            const src = await PDFLib.PDFDocument.load(arr, {ignoreEncryption:true});
-            const copied = await mergedPdf.copyPages(src, src.getPageIndices());
-            copied.forEach(p => mergedPdf.addPage(p));
-          }
-
-          flashStatus('Finalizing merged PDF...');
-          const mergedBytes = await mergedPdf.save();
-          const blob = new Blob([mergedBytes], {type:'application/pdf'});
-          const url = URL.createObjectURL(blob);
-
-          // show preview
-          previewFrame.src = url;
-
-          // enable download
-          downloadBtn.style.display = 'inline-block';
-          downloadBtn.href = url;
-          downloadBtn.download = 'merged.pdf';
-
-          flashStatus('Merge complete. Preview ready.');
-        }catch(err){
-          console.error(err);
-          flashStatus('Error while merging PDFs: ' + (err.message || err), true);
-        } finally {
-          btnMerge.disabled = false; btnMerge.textContent = 'Merge';
-        }
-      });
-
-      clearBtn.addEventListener('click', ()=>{
-        files = []; renderList(); previewFrame.srcdoc = '';
-        previewFrame.src = '';
-        downloadBtn.style.display = 'none';
-        flashStatus('Cleared. Add PDFs to begin.');
-      });
-
-      // initial render
-      renderList();
-
-      // accessibility: keyboard drop zone
-      dropZone.addEventListener('keydown', (e)=>{ if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
-
-    })();
+      const downloadBtn = document.getElementById("downloadBtn");
+      downloadBtn.href = url;
+      document.getElementById("downloadLink").style.display = "block";
+      status.textContent = "Merge complete!";
+    }
   </script>
 </body>
 </html>
