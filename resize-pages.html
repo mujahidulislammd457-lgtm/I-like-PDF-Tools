@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resize PDF Pages</title>
+<style>
+body{margin:0;padding:20px;font-family:Inter,Arial;background:#1E1E2F;color:#EAEAEA;}
+h1{text-align:center;color:#FFD700;margin-bottom:20px;}
+.container{max-width:600px;margin:0 auto;background:#2A2A3D;padding:20px;border-radius:12px;}
+input[type=file],input[type=number],select,button{width:100%;padding:12px;margin-top:10px;border-radius:8px;background:#353646;border:none;color:#EAEAEA;font-size:16px;}
+button{background:#FFD700;color:#000;font-weight:bold;cursor:pointer;}
+.progress-bar{width:100%;height:20px;background:#333;border-radius:10px;margin-top:15px;overflow:hidden;}
+.progress-fill{height:100%;width:0%;background:#4caf50;transition:width 0.3s ease;}
+#status{text-align:center;margin-top:10px;color:#AAB0C0;font-size:14px;}
+</style>
+</head>
+<body>
+<h1>Resize PDF Pages</h1>
+<div class="container">
+  <input type="file" id="pdfInput" accept="application/pdf">
+
+  <label>Preset Sizes:</label>
+  <select id="presetSelect">
+    <option value="">Custom</option>
+    <option value="A4">A4 (595x842 pt)</option>
+    <option value="Letter">Letter (612x792 pt)</option>
+    <option value="Legal">Legal (612x1008 pt)</option>
+  </select>
+
+  <label>Custom Width (pt):</label>
+  <input type="number" id="widthInput" placeholder="e.g. 595">
+
+  <label>Custom Height (pt):</label>
+  <input type="number" id="heightInput" placeholder="e.g. 842">
+
+  <button id="resizeBtn">Resize PDF</button>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <p id="status">No job started.</p>
+  <a id="downloadLink" href="#" style="display:none;"><button>Download Resized PDF</button></a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+<script>
+const pdfInput = document.getElementById("pdfInput");
+const widthInput = document.getElementById("widthInput");
+const heightInput = document.getElementById("heightInput");
+const presetSelect = document.getElementById("presetSelect");
+const resizeBtn = document.getElementById("resizeBtn");
+const progressFill = document.getElementById("progressFill");
+const statusText = document.getElementById("status");
+const downloadLink = document.getElementById("downloadLink");
+
+// Preset dimensions
+const presets = {
+  "A4": [595,842],
+  "Letter":[612,792],
+  "Legal":[612,1008]
+};
+
+// Update custom fields when preset changes
+presetSelect.addEventListener("change", ()=>{
+  const preset = presetSelect.value;
+  if(preset && presets[preset]){
+    widthInput.value = presets[preset][0];
+    heightInput.value = presets[preset][1];
+  }
+});
+
+resizeBtn.addEventListener("click", async ()=>{
+  if(!pdfInput.files[0]) return alert("Select a PDF first!");
+  const width = parseInt(widthInput.value);
+  const height = parseInt(heightInput.value);
+  if(!width || !height) return alert("Enter valid width and height!");
+
+  statusText.textContent="Resizing pages...";
+  progressFill.style.width="0%";
+  downloadLink.style.display="none";
+
+  const pdfBytes = await pdfInput.files[0].arrayBuffer();
+  const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+
+  let progress=0;
+  const interval = setInterval(()=>{ progress+=20; if(progress>90) progress=90; progressFill.style.width=progress+"%"; }, 300);
+
+  const pages = pdfDoc.getPages();
+  pages.forEach(page=>{
+    const content = page.getContentStream();
+    const scaleX = width/page.getWidth();
+    const scaleY = height/page.getHeight();
+    page.setSize(width,height);
+    page.scaleContent(scaleX,scaleY); // pdf-lib v1.20+ required
+  });
+
+  const pdfData = await pdfDoc.save();
+  clearInterval(interval);
+  progressFill.style.width="100%";
+  statusText.textContent="Resize complete!";
+
+  const blob = new Blob([pdfData],{type:"application/pdf"});
+  downloadLink.href = URL.createObjectURL(blob);
+  downloadLink.style.display="block";
+});
+</script>
+</body>
+</html>
