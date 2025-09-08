@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reduce PDF Size - Advanced Compression</title>
+<style>
+  body {
+    margin: 0;
+    padding: 20px;
+    font-family: Inter, Arial, sans-serif;
+    background: #1E1E2F;
+    color: #EAEAEA;
+  }
+
+  h1 {
+    text-align: center;
+    color: #FFD700;
+    margin-bottom: 20px;
+  }
+
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    background: #2A2A3D;
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  input[type=file], select {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 8px;
+    background: #353646;
+    border: none;
+    color: #EAEAEA;
+    font-size: 16px;
+  }
+
+  button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    background: #FFD700;
+    color: #000;
+    font-size: 16px;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 20px;
+    background: #333;
+    border-radius: 10px;
+    margin-top: 15px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: #4caf50;
+    transition: width 0.5s ease;
+  }
+
+  #status {
+    text-align: center;
+    margin-top: 10px;
+    color: #AAB0C0;
+    font-size: 14px;
+  }
+
+  #sizeInfo {
+    text-align: center;
+    margin-top: 10px;
+    color: #FFD700;
+    font-size: 15px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+<h1>Reduce PDF Size</h1>
+<div class="container">
+  <input type="file" id="fileInput" accept="application/pdf">
+  
+  <select id="presetSelect">
+    <option value="light">Light Compression</option>
+    <option value="moderate">Moderate Compression</option>
+    <option value="aggressive">Aggressive Compression</option>
+  </select>
+
+  <button id="compressBtn">Optimize PDF</button>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <p id="status">No job started.</p>
+  <p id="sizeInfo"></p>
+  <a id="downloadLink" href="#" style="display:none;" download="optimized_original.pdf">
+    <button>Download Optimized PDF</button>
+  </a>
+</div>
+
+<script>
+  const fileInput = document.getElementById("fileInput");
+  const presetSelect = document.getElementById("presetSelect");
+  const compressBtn = document.getElementById("compressBtn");
+  const progressFill = document.getElementById("progressFill");
+  const statusText = document.getElementById("status");
+  const sizeInfo = document.getElementById("sizeInfo");
+  const downloadLink = document.getElementById("downloadLink");
+
+  compressBtn.addEventListener("click", async () => {
+    if (!fileInput.files[0]) return alert("Select a PDF file first!");
+
+    const file = fileInput.files[0];
+    const preset = presetSelect.value;
+
+    statusText.textContent = "Optimizing...";
+    progressFill.style.width = "0%";
+    sizeInfo.textContent = "";
+    downloadLink.style.display = "none";
+
+    // Simulate client-side partial compression & progress
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.random() * 15; // random progress
+      if (progress > 95) progress = 95;
+      progressFill.style.width = progress + "%";
+    }, 400);
+
+    // Simulate server-side optimization
+    // Production: Send POST to server for Ghostscript/qpdf optimization
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("preset", preset);
+
+    try {
+      const response = await fetch("/optimize-pdf", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!response.ok) throw new Error("Optimization failed!");
+
+      const blob = await response.blob();
+      clearInterval(interval);
+      progressFill.style.width = "100%";
+      statusText.textContent = "Optimization complete!";
+      sizeInfo.textContent = `Original: ${(file.size/1024/1024).toFixed(2)} MB, Optimized: ${(blob.size/1024/1024).toFixed(2)} MB`;
+
+      downloadLink.href = URL.createObjectURL(blob);
+      downloadLink.style.display = "block";
+    } catch (err) {
+      clearInterval(interval);
+      statusText.textContent = "Error during optimization.";
+      alert(err.message);
+    }
+  });
+</script>
+</body>
+</html>
