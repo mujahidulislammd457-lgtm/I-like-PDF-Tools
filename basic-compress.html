@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Basic Compress PDF online. Fast, client-side rasterize + rebuild PDF compressor. Reduce PDF size by rasterizing pages to JPEG and rebuilding. Mobile-friendly.">
+  <meta name="keywords" content="Basic Compress PDF, Compress PDF, Reduce PDF Size, PDF Compressor, Rasterize PDF">
+  <title>Basic Compress PDF — I Like PDF Tools</title>
+
+  <style>
+    :root{
+      --bg:#1E1E2F; --card:#2A2A3D; --accent:#FFD700; --muted:#AAB0C0; --text:#EAEAEA;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:Inter,Segoe UI,system-ui,Arial; background:var(--bg); color:var(--text); padding:18px}
+    .wrap{max-width:940px; margin:12px auto; padding:18px; border-radius:12px; background:var(--card); box-shadow:0 12px 40px rgba(0,0,0,0.6);}
+    h1{color:var(--accent); font-size:1.4rem; text-align:center; margin:0 0 12px}
+    .row{display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap}
+    .left{flex:1; min-width:260px}
+    .panel{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent); border-radius:10px; padding:12px; border:1px solid rgba(255,255,255,0.02)}
+    .upload{border:2px dashed rgba(255,215,0,0.12); padding:18px; text-align:center; border-radius:10px; cursor:pointer}
+    .muted{color:var(--muted); font-size:0.9rem}
+    label{display:block; margin:8px 0 6px; color:var(--muted); font-size:0.9rem}
+    input[type="number"], select{width:100%; padding:10px; border-radius:8px; border:none; background:#353646; color:var(--text); outline:none}
+    button{background:var(--accent); border:none; color:#000; padding:12px; border-radius:10px; font-weight:700; cursor:pointer; width:100%}
+    .small-btn{padding:8px 10px; font-size:0.95rem}
+    .status{margin-top:10px; font-size:0.95rem; color:var(--muted)}
+    .preview-area{display:flex; gap:12px; margin-top:12px; flex-wrap:wrap; align-items:flex-start}
+    .preview-canvas{background:#111; border-radius:8px; border:1px solid rgba(255,255,255,0.02); max-width:100%; width:320px}
+    .info{font-size:0.9rem; color:var(--muted); margin-top:8px}
+    .download{display:none; margin-top:12px; text-align:center}
+    .download a{color:var(--accent); text-decoration:none; border:1px solid var(--accent); padding:8px 12px; border-radius:8px}
+    @media (max-width:720px){
+      .row{flex-direction:column}
+      .preview-canvas{width:100%}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" role="main">
+    <h1>Basic Compress PDF (Rasterize & Rebuild)</h1>
+
+    <div class="row">
+      <div class="left panel">
+        <div id="dropZone" class="upload" title="Click or drop PDF">
+          <input id="fileInput" type="file" accept="application/pdf" style="display:none" />
+          <div id="uploadText">Click or drag & drop a PDF file here</div>
+          <div class="muted" style="margin-top:8px">Client-side compression — rasterizes pages to JPEG. Text becomes non-searchable. Recommended for image-heavy PDFs.</div>
+        </div>
+
+        <label for="preset">Compression Preset</label>
+        <select id="preset">
+          <option value="high">High quality (low compression) — ~150 DPI, quality 0.9</option>
+          <option value="medium" selected>Medium (balanced) — ~96 DPI, quality 0.75</option>
+          <option value="low">Low (strong compression) — ~72 DPI, quality 0.6</option>
+        </select>
+
+        <label for="dpi">Custom DPI (pixels per inch)</label>
+        <input id="dpi" type="number" min="50" max="300" value="96" />
+
+        <label for="quality">JPEG Quality (0.1 - 1.0)</label>
+        <input id="quality" type="number" min="0.1" max="1" step="0.05" value="0.75" />
+
+        <button id="compressBtn" class="small-btn">Compress PDF</button>
+        <div class="status" id="status">No file uploaded.</div>
+
+        <div class="info" id="sizeInfo"></div>
+        <div class="download" id="downloadArea">
+          <a id="downloadLink" href="#" download="compressed.pdf">Download compressed.pdf</a>
+        </div>
+      </div>
+
+      <div class="panel" style="width:360px; max-width:100%">
+        <div style="display:flex; gap:8px; align-items:center; justify-content:space-between">
+          <div>
+            <div class="muted">Preview (before / after)</div>
+            <div class="muted" style="font-size:0.85rem">First page shown; final PDF will include all pages.</div>
+          </div>
+          <div style="min-width:120px">
+            <button id="togglePreview" class="small-btn">Toggle Preview</button>
+          </div>
+        </div>
+
+        <div class="preview-area" id="previewArea" style="margin-top:12px">
+          <canvas id="origCanvas" class="preview-canvas" width="320" height="420" style="display:none"></canvas>
+          <canvas id="compCanvas" class="preview-canvas" width="320" height="420" style="display:none"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfjs-dist/2.16.105/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+
+  <script>
+    // Elements
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadText = document.getElementById('uploadText');
+    const preset = document.getElementById('preset');
+    const dpiInput = document.getElementById('dpi');
+    const qualityInput = document.getElementById('quality');
+    const compressBtn = document.getElementById('compressBtn');
+    const statusEl = document.getElementById('status');
+    const sizeInfo = document.getElementById('sizeInfo');
+    const downloadArea = document.getElementById('downloadArea');
+    const downloadLink = document.getElementById('downloadLink');
+    const origCanvas = document.getElementById('origCanvas');
+    const compCanvas = document.getElementById('compCanvas');
+    const previewArea = document.getElementById('previewArea');
+    const togglePreview = document.getElementById('togglePreview');
+
+    let pdfFile = null;
+    let lastBlobUrl = null;
+
+    // Drag-and-drop & file input
+    ['dragenter','dragover'].forEach(e => {
+      dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.style.outline = '3px solid rgba(255,215,0,0.12)'; });
+    });
+    ['dragleave','drop'].forEach(e => {
+      dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.style.outline = 'none'; });
+    });
+    dropZone.addEventListener('drop', ev => {
+      const f = ev.dataTransfer.files && ev.dataTransfer.files[0];
+      if (f) handleFile(f);
+    });
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => handleFile(e.target.files && e.target.files[0]));
+
+    function handleFile(file) {
+      if (!file) return;
+      if (file.type !== 'application/pdf') {
+        alert('Please upload a PDF file.');
+        return;
+      }
+      pdfFile = file;
+      uploadText.textContent = `Loaded: ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
+      statusEl.textContent = 'Ready to compress. Choose preset or set custom DPI/quality.';
+      sizeInfo.textContent = '';
+      downloadArea.style.display = 'none';
+      if (lastBlobUrl) { URL.revokeObjectURL(lastBlobUrl); lastBlobUrl = null; }
+      // Render first page preview original
+      renderFirstPagePreview(file, origCanvas, { scale: 1.0 }).catch(()=>{});
+    }
+
+    // presets link to dpi & quality
+    preset.addEventListener('change', () => {
+      if (preset.value === 'high') { dpiInput.value = 150; qualityInput.value = 0.9; }
+      if (preset.value === 'medium') { dpiInput.value = 96; qualityInput.value = 0.75; }
+      if (preset.value === 'low') { dpiInput.value = 72; qualityInput.value = 0.6; }
+    });
+
+    togglePreview.addEventListener('click', () => {
+      origCanvas.style.display = origCanvas.style.display === 'none' ? 'block' : 'none';
+      compCanvas.style.display = compCanvas.style.display === 'none' ? 'block' : 'none';
+    });
+
+    compressBtn.addEventListener('click', async () => {
+      if (!pdfFile) { alert('Please upload a PDF first.'); return; }
+      compressBtn.disabled = true;
+      statusEl.textContent = 'Starting compression...';
+      downloadArea.style.display = 'none';
+
+      // set params
+      const dpi = Math.max(50, Math.min(300, parseInt(dpiInput.value) || 96));
+      let quality = parseFloat(qualityInput.value);
+      if (isNaN(quality) || quality <= 0 || quality > 1) quality = 0.75;
+
+      // load PDF
+      const arrayBuffer = await pdfFile.arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      let pdfDoc;
+      try {
+        pdfDoc = await loadingTask.promise;
+      } catch (err) {
+        statusEl.textContent = 'Failed to load PDF: ' + (err.message || err);
+        compressBtn.disabled = false;
+        return;
+      }
+
+      const pageCount = pdfDoc.numPages;
+      statusEl.textContent = `Rendering ${pageCount} page(s) at ${dpi} DPI...`;
+
+      // Create new PDF
+      const newPdf = await PDFLib.PDFDocument.create();
+
+      let totalBytes = 0;
+      const origSize = pdfFile.size;
+
+      for (let p = 1; p <= pageCount; p++) {
+        statusEl.textContent = `Rendering page ${p} / ${pageCount}...`;
+        const page = await pdfDoc.getPage(p);
+
+        // compute scale — pdfjs viewport uses pixels; DPI mapping: scale = dpi / 72 * (page.getViewport default?) approximate:
+        const viewport = page.getViewport({ scale: 1 });
+        // convert desired DPI to scale: default 72 DPI -> scale = dpi/72
+        const scale = dpi / 72;
+        const renderViewport = page.getViewport({ scale });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(renderViewport.width);
+        canvas.height = Math.round(renderViewport.height);
+        const ctx = canvas.getContext('2d');
+
+        await page.render({ canvasContext: ctx, viewport: renderViewport }).promise;
+
+        // for preview for first page
+        if (p === 1) {
+          // draw original small preview
+          drawPreviewCanvas(origCanvas, canvas);
+        }
+
+        // convert to JPEG dataURL
+        statusEl.textContent = `Encoding page ${p} to JPEG...`;
+        const jpegDataUrl = canvas.toDataURL('image/jpeg', quality);
+
+        // show compressed preview first page
+        if (p === 1) {
+          drawDataUrlToCanvas(compCanvas, jpegDataUrl);
+          compCanvas.style.display = 'block';
+          origCanvas.style.display = 'block';
+        }
+
+        // convert base64 -> Uint8Array
+        const jpgBytes = dataURLToUint8Array(jpegDataUrl);
+        totalBytes += jpgBytes.length;
+
+        // embed into pdf-lib
+        const jpgImage = await newPdf.embedJpg(jpgBytes);
+        const imgDims = jpgImage.scale(1);
+
+        // create a page in points (use pixel dims approximated as points)
+        const newPage = newPdf.addPage([imgDims.width, imgDims.height]);
+        newPage.drawImage(jpgImage, {
+          x: 0, y: 0, width: imgDims.width, height: imgDims.height
+        });
+
+        // small delay to keep UI responsive for large docs
+        await new Promise(r => setTimeout(r, 10));
+      }
+
+      statusEl.textContent = 'Saving compressed PDF...';
+      const newPdfBytes = await newPdf.save();
+
+      // create blob and download link
+      const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
+      if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
+      lastBlobUrl = URL.createObjectURL(blob);
+
+      downloadLink.href = lastBlobUrl;
+      downloadLink.download = pdfFile.name.replace(/\.pdf$/i, '') + '_compressed.pdf';
+      downloadArea.style.display = 'block';
+
+      // show size info
+      const compressedSize = blob.size;
+      sizeInfo.innerHTML = `Original: ${(origSize/1024/1024).toFixed(2)} MB &nbsp;•&nbsp; Compressed: ${(compressedSize/1024/1024).toFixed(2)} MB`;
+      statusEl.textContent = 'Compression complete! Note: text is rasterized and no longer searchable.';
+      compressBtn.disabled = false;
+    });
+
+    // Helpers
+    async function renderFirstPagePreview(file, canvasEl, opts = {}) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const page = await pdf.getPage(1);
+        const scale = 1;
+        const viewport = page.getViewport({ scale });
+        const canvas = canvasEl;
+        // choose fit width
+        const fitWidth = Math.min(800, viewport.width);
+        const fitScale = (fitWidth / viewport.width);
+        const renderViewport = page.getViewport({ scale: fitScale });
+        canvas.width = Math.round(renderViewport.width);
+        canvas.height = Math.round(renderViewport.height);
+        const ctx = canvas.getContext('2d');
+        await page.render({ canvasContext: ctx, viewport: renderViewport }).promise;
+        canvas.style.display = 'block';
+      } catch (e) {
+        console.warn('Preview failed', e);
+      }
+    }
+
+    function drawPreviewCanvas(targetCanvas, sourceCanvas) {
+      const ctx = targetCanvas.getContext('2d');
+      // fit source into target width while preserving aspect
+      const maxW = targetCanvas.width;
+      const ratio = sourceCanvas.width / sourceCanvas.height;
+      const newW = Math.min(maxW, sourceCanvas.width);
+      const newH = Math.round(newW / ratio);
+      targetCanvas.width = newW;
+      targetCanvas.height = newH;
+      ctx.clearRect(0,0,newW,newH);
+      ctx.drawImage(sourceCanvas, 0, 0, newW, newH);
+      targetCanvas.style.display = 'block';
+    }
+
+    function drawDataUrlToCanvas(canvasEl, dataUrl) {
+      const img = new Image();
+      img.onload = () => {
+        const ctx = canvasEl.getContext('2d');
+        // fit image
+        const maxW = canvasEl.width || 320;
+        const ratio = img.width / img.height;
+        const newW = Math.min(maxW, img.width);
+        const newH = Math.round(newW / ratio);
+        canvasEl.width = newW;
+        canvasEl.height = newH;
+        ctx.clearRect(0,0,newW,newH);
+        ctx.drawImage(img, 0, 0, newW, newH);
+      };
+      img.src = dataUrl;
+    }
+
+    function dataURLToUint8Array(dataURL) {
+      const base64 = dataURL.split(',')[1];
+      const binary = atob(base64);
+      const len = binary.length;
+      const arr = new Uint8Array(len);
+      for (let i = 0; i < len; i++) arr[i] = binary.charCodeAt(i);
+      return arr;
+    }
+  </script>
+</body>
+</html>
