@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Annotate PDF</title>
+<style>
+body{margin:0;padding:20px;font-family:Inter,Arial;background:#1E1E2F;color:#EAEAEA;}
+h1{text-align:center;color:#FFD700;margin-bottom:20px;}
+.container{max-width:700px;margin:0 auto;background:#2A2A3D;padding:20px;border-radius:12px;}
+input[type=file],button,select{width:100%;padding:12px;margin-top:10px;border-radius:8px;background:#353646;border:none;color:#EAEAEA;font-size:16px;}
+button{background:#FFD700;color:#000;font-weight:bold;cursor:pointer;}
+canvas{border:1px solid #444;margin-top:15px;border-radius:8px;display:block;max-width:100%;}
+#status{text-align:center;margin-top:10px;color:#AAB0C0;font-size:14px;}
+.progress-bar{width:100%;height:20px;background:#333;border-radius:10px;margin-top:15px;overflow:hidden;}
+.progress-fill{height:100%;width:0%;background:#4caf50;transition:width 0.3s ease;}
+</style>
+</head>
+<body>
+<h1>Annotate PDF</h1>
+<div class="container">
+  <input type="file" id="pdfInput" accept="application/pdf">
+  <select id="toolSelect">
+    <option value="draw" selected>Draw</option>
+    <option value="highlight">Highlight</option>
+    <option value="text">Add Text</option>
+  </select>
+  <button id="downloadBtn">Download Annotated PDF</button>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <p id="status">No job started.</p>
+  <div id="canvasContainer"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfjs-dist/3.5.141/pdf.min.js"></script>
+<script>
+const pdfInput = document.getElementById("pdfInput");
+const canvasContainer = document.getElementById("canvasContainer");
+const toolSelect = document.getElementById("toolSelect");
+const downloadBtn = document.getElementById("downloadBtn");
+const progressFill = document.getElementById("progressFill");
+const statusText = document.getElementById("status");
+
+let canvases = [], annotations = [];
+
+pdfInput.addEventListener("change", async ()=>{
+  if(!pdfInput.files[0]) return;
+  canvasContainer.innerHTML="";
+  canvases=[];
+  annotations=[];
+  statusText.textContent="Rendering PDF...";
+  progressFill.style.width="0%";
+
+  const pdfData = await pdfInput.files[0].arrayBuffer();
+  const pdfDoc = await pdfjsLib.getDocument({data: pdfData}).promise;
+  const totalPages = pdfDoc.numPages;
+
+  for(let i=1;i<=totalPages;i++){
+    const page = await pdfDoc.getPage(i);
+    const viewport = page.getViewport({scale:1.5});
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext("2d");
+    await page.render({canvasContext:ctx,viewport}).promise;
+    canvasContainer.appendChild(canvas);
+    canvases.push({canvas,ctx});
+    annotations.push([]);
+    progressFill.style.width = `${Math.round((i/totalPages)*100)}%`;
+  }
+  statusText.textContent="PDF rendered! Select tool to annotate.";
+});
+
+// Simple annotation (draw/highlight)
+let drawing=false, currentCanvas=null, currentCtx=null;
+canvasContainer.addEventListener("mousedown", e=>{
+  if(e.target.tagName==="CANVAS"){
+    currentCanvas = e.target;
+    currentCtx = currentCanvas.getContext("2d");
+    drawing=true;
+    currentCtx.beginPath();
+    currentCtx.moveTo(e.offsetX,e.offsetY);
+  }
+});
+canvasContainer.addEventListener("mousemove", e=>{
+  if(drawing && currentCanvas && currentCtx){
+    if(toolSelect.value==="draw") currentCtx.strokeStyle="white";
+    else if(toolSelect.value==="highlight") currentCtx.strokeStyle="yellow";
+    currentCtx.lineWidth = toolSelect.value==="highlight"?10:2;
+    currentCtx.lineTo(e.offsetX,e.offsetY);
+    currentCtx.stroke();
+  }
+});
+canvasContainer.addEventListener("mouseup", e=>{drawing=false;});
+canvasContainer.addEventListener("mouseleave", e=>{drawing=false;});
+
+// Download annotated PDF
+downloadBtn.addEventListener("click", async ()=>{
+  if(!pdfInput.files[0]) return alert("Upload a PDF first!");
+  statusText.textContent="Generating annotated PDF...";
+  progressFill.style.width="0%";
+
+  const pdfBytes = await pdfInput.files[0].arrayBuffer();
+  const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+
+  const pages = pdfDoc.getPages();
+  for(let i=0;i<pages.length;i++){
+    const page = pages[i];
+    const canvas = canvases[i];
+    const imgBytes = canvas.canvas.toDataURL("image/png");
+    const pngImage = await pdfDoc.embedPng(imgBytes);
+    page.drawImage(pngImage,{x:0,y:0,width:page.getWidth(),height:page.getHeight()});
+    progressFill.style.width = `${Math.round(((i+1)/pages.length)*100)}%`;
+  }
+
+  const annotatedBytes = await pdfDoc.save();
+  const blob = new Blob([annotatedBytes],{type:"application/pdf"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download="annotated.pdf"; a.click();
+  statusText.textContent="Annotated PDF ready!";
+});
+</script>
+</body>
+</html>
