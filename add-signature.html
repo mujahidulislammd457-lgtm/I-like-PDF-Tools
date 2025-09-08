@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Signature - PDF Tool</title>
+<style>
+body {
+  margin: 0; padding: 20px; font-family: Inter, Arial, sans-serif;
+  background: #1E1E2F; color: #EAEAEA;
+}
+h1 { text-align: center; color: #FFD700; margin-bottom: 20px; }
+
+.container {
+  max-width: 600px; margin: 0 auto;
+  background: #2A2A3D; padding: 20px; border-radius: 12px;
+}
+
+input[type=file], select, input[type=color], input[type=range], button {
+  width: 100%; padding: 12px; margin-top: 10px;
+  border-radius: 8px; background: #353646; border: none; color: #EAEAEA; font-size: 16px;
+}
+
+button { background: #FFD700; color: #000; font-weight: bold; cursor: pointer; }
+
+#signatureCanvas { border:2px dashed #FFD700; border-radius:8px; margin-top:15px; width:100%; touch-action: none; }
+
+#previewContainer { margin-top:15px; position:relative; width:100%; height:300px; border:1px solid #555; overflow:hidden; }
+
+#sigImage { position:absolute; cursor:move; }
+
+.progress-bar { width:100%; height:20px; background:#333; border-radius:10px; margin-top:15px; overflow:hidden; }
+.progress-fill { height:100%; width:0%; background:#4caf50; transition:width 0.3s ease; }
+#status { text-align:center; margin-top:10px; color:#AAB0C0; font-size:14px; }
+</style>
+</head>
+<body>
+<h1>Add Signature to PDF</h1>
+<div class="container">
+
+  <input type="file" id="pdfInput" accept="application/pdf">
+  <label>Signature Input:</label>
+  <canvas id="signatureCanvas" height="150"></canvas>
+  <input type="file" id="uploadSig" accept="image/png, image/jpeg">
+  <input type="text" id="typedSig" placeholder="Type your signature here">
+
+  <label>Preview & Placement</label>
+  <div id="previewContainer">
+    <img id="sigImage" src="" style="display:none;">
+  </div>
+
+  <label>Opacity:</label>
+  <input type="range" id="opacityRange" min="0.1" max="1" step="0.05" value="1">
+
+  <button id="applyBtn">Apply Signature to PDF</button>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <p id="status">No job started.</p>
+  <a id="downloadLink" href="#" style="display:none;"><button>Download Signed PDF</button></a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+<script>
+const pdfInput = document.getElementById("pdfInput");
+const signatureCanvas = document.getElementById("signatureCanvas");
+const uploadSig = document.getElementById("uploadSig");
+const typedSig = document.getElementById("typedSig");
+const applyBtn = document.getElementById("applyBtn");
+const progressFill = document.getElementById("progressFill");
+const statusText = document.getElementById("status");
+const downloadLink = document.getElementById("downloadLink");
+const previewContainer = document.getElementById("previewContainer");
+const sigImage = document.getElementById("sigImage");
+const opacityRange = document.getElementById("opacityRange");
+
+const ctx = signatureCanvas.getContext("2d");
+let drawing = false;
+
+// Canvas drawing
+function resizeCanvas(){ signatureCanvas.width = signatureCanvas.offsetWidth; }
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+signatureCanvas.addEventListener("pointerdown", e=>{ drawing=true; ctx.beginPath(); ctx.moveTo(e.offsetX,e.offsetY); });
+signatureCanvas.addEventListener("pointermove", e=>{ if(drawing){ ctx.lineTo(e.offsetX,e.offsetY); ctx.strokeStyle="#FFD700"; ctx.lineWidth=2; ctx.stroke(); } });
+signatureCanvas.addEventListener("pointerup", e=>{ drawing=false; ctx.closePath(); });
+signatureCanvas.addEventListener("pointerleave", e=>{ drawing=false; ctx.closePath(); });
+
+// Drag & drop signature
+let offsetX, offsetY, dragging=false;
+sigImage.addEventListener("pointerdown", e=>{
+  dragging=true;
+  offsetX=e.offsetX;
+  offsetY=e.offsetY;
+});
+sigImage.addEventListener("pointermove", e=>{
+  if(dragging){
+    const rect=previewContainer.getBoundingClientRect();
+    sigImage.style.left=Math.min(Math.max(e.clientX-rect.left-offsetX,0),rect.width-sigImage.width)+"px";
+    sigImage.style.top=Math.min(Math.max(e.clientY-rect.top-offsetY,0),rect.height-sigImage.height)+"px";
+  }
+});
+sigImage.addEventListener("pointerup",()=>dragging=false);
+sigImage.addEventListener("pointerleave",()=>dragging=false);
+
+// Show uploaded signature
+uploadSig.addEventListener("change", e=>{
+  const file=uploadSig.files[0];
+  if(file){
+    const reader=new FileReader();
+    reader.onload=(ev)=>{
+      sigImage.src=ev.target.result;
+      sigImage.style.display="block";
+      sigImage.style.width="100px";
+      sigImage.style.top="0px";
+      sigImage.style.left="0px";
+      sigImage.style.opacity=opacityRange.value;
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+// Typed signature
+typedSig.addEventListener("input", ()=>{
+  const text = typedSig.value;
+  if(text){
+    const tempCanvas=document.createElement("canvas");
+    const tempCtx=tempCanvas.getContext("2d");
+    tempCanvas.width=300; tempCanvas.height=100;
+    tempCtx.font="bold 36px cursive"; tempCtx.fillStyle="#FFD700";
+    tempCtx.fillText(text,10,50);
+    sigImage.src=tempCanvas.toDataURL();
+    sigImage.style.display="block";
+    sigImage.style.width="150px";
+    sigImage.style.top="0px"; sigImage.style.left="0px";
+    sigImage.style.opacity=opacityRange.value;
+  }
+});
+
+// Opacity control
+opacityRange.addEventListener("input", ()=>{
+  sigImage.style.opacity=opacityRange.value;
+});
+
+// Apply signature (simulate server-side with pdf-lib)
+applyBtn.addEventListener("click", async ()=>{
+  if(!pdfInput.files[0]) return alert("Select a PDF first!");
+  statusText.textContent="Applying signature...";
+  progressFill.style.width="0%";
+
+  const pdfBytes = await pdfInput.files[0].arrayBuffer();
+  const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+
+  const sigImgBytes = await fetch(sigImage.src).then(res=>res.arrayBuffer());
+  const sigPng = await pdfDoc.embedPng(sigImgBytes);
+
+  const pages = pdfDoc.getPages();
+  const page = pages[0]; // For demo, add to first page
+  const { width, height } = page.getSize();
+
+  // Scale and position based on previewContainer
+  const scaleX = sigImage.width/previewContainer.offsetWidth;
+  const scaleY = sigImage.height/previewContainer.offsetHeight;
+  const posX = parseFloat(sigImage.style.left)/previewContainer.offsetWidth*width;
+  const posY = height - (parseFloat(sigImage.style.top)/previewContainer.offsetHeight*height) - (sigImage.height/previewContainer.offsetHeight*height);
+
+  page.drawImage(sigPng, { x:posX, y:posY, width:scaleX*width, height:scaleY*height, opacity:parseFloat(sigImage.style.opacity) });
+
+  // Simulate progress
+  let progress=0;
+  const interval=setInterval(()=>{ progress+=20; if(progress>100) progress=100; progressFill.style.width=progress+"%"; if(progress===100) clearInterval(interval); }, 300);
+
+  const pdfData = await pdfDoc.save();
+  const blob = new Blob([pdfData], { type:"application/pdf" });
+  downloadLink.href = URL.createObjectURL(blob);
+  downloadLink.style.display="block";
+  statusText.textContent="Signature applied!";
+});
+</script>
+</body>
+</html>
