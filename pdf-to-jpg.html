@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Convert PDF to JPG images online. Free, fast, and secure PDF to JPG converter with previews and ZIP download.">
+  <meta name="keywords" content="PDF to JPG, Convert PDF to Images, Free PDF to JPG Converter, Extract PDF Pages as JPG, Online PDF Tools">
+  <title>Convert PDF to JPG - I Like PDF Tools</title>
+
+  <style>
+    :root {
+      --bg-dark: #1E1E2F;
+      --primary: #FFD700;
+      --secondary: #2B2D42;
+      --text: #EAEAEA;
+      --card-bg: #2A2A3D;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0px 4px 15px rgba(0,0,0,0.5);
+      width: 100%;
+      max-width: 750px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+      color: var(--primary);
+    }
+
+    .upload-box {
+      border: 2px dashed var(--primary);
+      border-radius: 12px;
+      padding: 25px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background 0.3s ease;
+    }
+    .upload-box:hover { background: rgba(255, 215, 0, 0.05); }
+    .upload-box input { display: none; }
+
+    button {
+      background: var(--primary);
+      border: none;
+      color: #000;
+      font-weight: bold;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s ease;
+      width: 100%;
+      font-size: 1rem;
+      margin-top: 10px;
+    }
+    button:hover { background: #e6c200; }
+
+    .status {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #aaa;
+      text-align: center;
+    }
+
+    .preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 15px;
+      justify-content: center;
+    }
+
+    .preview img {
+      width: 150px;
+      height: auto;
+      border-radius: 8px;
+      border: 2px solid var(--primary);
+      background: #111;
+    }
+
+    .download-link {
+      display: none;
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .download-link a {
+      color: var(--primary);
+      font-weight: bold;
+      text-decoration: none;
+      border: 1px solid var(--primary);
+      padding: 10px 15px;
+      border-radius: 8px;
+      transition: 0.3s ease;
+    }
+    .download-link a:hover { background: var(--primary); color: #000; }
+
+    /* Mobile responsive */
+    @media (max-width: 600px) {
+      h1 { font-size: 1.5rem; }
+      .upload-box { padding: 20px; }
+      .preview img { width: 100px; }
+      button { font-size: 0.9rem; padding: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Convert PDF to JPG</h1>
+
+    <div class="upload-box" onclick="document.getElementById('pdfUpload').click()">
+      <p>Click or drag & drop to upload PDF</p>
+      <input type="file" id="pdfUpload" accept="application/pdf">
+    </div>
+
+    <button onclick="convertPDFtoJPG()">Convert PDF to JPG</button>
+    <div class="status" id="status">No file uploaded yet.</div>
+
+    <div class="preview" id="preview"></div>
+
+    <div class="download-link" id="downloadLink">
+      <a id="downloadAll" href="#">Download All as ZIP</a>
+    </div>
+  </div>
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfjs-dist/2.16.105/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <script>
+    let uploadedFile = null;
+
+    document.getElementById("pdfUpload").addEventListener("change", function(event) {
+      uploadedFile = event.target.files[0];
+      document.getElementById("status").textContent = uploadedFile
+        ? "File uploaded: " + uploadedFile.name
+        : "No file uploaded yet.";
+    });
+
+    async function convertPDFtoJPG() {
+      if (!uploadedFile) {
+        alert("Please upload a PDF file.");
+        return;
+      }
+
+      document.getElementById("status").textContent = "Processing PDF...";
+
+      const arrayBuffer = await uploadedFile.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const preview = document.getElementById("preview");
+      preview.innerHTML = "";
+
+      const zip = new JSZip();
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale: 2 }); // High quality
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+        const imgData = canvas.toDataURL("image/jpeg", 0.9); // JPG format
+        const imgElement = document.createElement("img");
+        imgElement.src = imgData;
+        preview.appendChild(imgElement);
+
+        // Add to ZIP
+        const base64 = imgData.split(",")[1];
+        zip.file(`page_${i}.jpg`, base64, { base64: true });
+
+        // Single download
+        const link = document.createElement("a");
+        link.href = imgData;
+        link.download = `page_${i}.jpg`;
+        link.textContent = `Download Page ${i}`;
+        link.style.display = "block";
+        link.style.margin = "5px auto";
+        link.style.textAlign = "center";
+        preview.appendChild(link);
+      }
+
+      // Create ZIP for all
+      const blob = await zip.generateAsync({ type: "blob" });
+      const zipUrl = URL.createObjectURL(blob);
+      document.getElementById("downloadAll").href = zipUrl;
+      document.getElementById("downloadAll").download = "pdf_pages.zip";
+      document.getElementById("downloadLink").style.display = "block";
+
+      document.getElementById("status").textContent = "Conversion complete!";
+    }
+  </script>
+</body>
+</html>
