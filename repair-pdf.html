@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF Repair & Validation</title>
+<style>
+body{margin:0;padding:20px;font-family:Inter,Arial;background:#1E1E2F;color:#EAEAEA;}
+h1{text-align:center;color:#FFD700;margin-bottom:20px;}
+.container{max-width:600px;margin:0 auto;background:#2A2A3D;padding:20px;border-radius:12px;}
+input[type=file],button,textarea{width:100%;padding:12px;margin-top:10px;border-radius:8px;background:#353646;border:none;color:#EAEAEA;font-size:16px;}
+button{background:#FFD700;color:#000;font-weight:bold;cursor:pointer;}
+textarea{height:200px;background:#1E1E2F;color:#EAEAEA;resize:none;}
+.progress-bar{width:100%;height:20px;background:#333;border-radius:10px;margin-top:15px;overflow:hidden;}
+.progress-fill{height:100%;width:0%;background:#4caf50;transition:width 0.3s ease;}
+#status{text-align:center;margin-top:10px;color:#AAB0C0;font-size:14px;}
+</style>
+</head>
+<body>
+<h1>PDF Repair & Validation</h1>
+<div class="container">
+  <input type="file" id="pdfInput" accept="application/pdf">
+  <button id="checkBtn">Validate PDF</button>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <p id="status">No job started.</p>
+  <textarea id="report" placeholder="Validation report will appear here..."></textarea>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+<script>
+const pdfInput = document.getElementById("pdfInput");
+const checkBtn = document.getElementById("checkBtn");
+const progressFill = document.getElementById("progressFill");
+const statusText = document.getElementById("status");
+const report = document.getElementById("report");
+
+checkBtn.addEventListener("click", async ()=>{
+  if(!pdfInput.files[0]) return alert("Upload a PDF first!");
+
+  report.value="";
+  statusText.textContent="Validating PDF...";
+  progressFill.style.width="0%";
+
+  const pdfFile = pdfInput.files[0];
+  try{
+    const pdfBytes = await pdfFile.arrayBuffer();
+    const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+    const pageCount = pdfDoc.getPageCount();
+    let issues=[];
+
+    if(pageCount===0) issues.push("PDF has no pages.");
+    // Basic validation for forms
+    const form = pdfDoc.getForm();
+    if(form && form.getFields().length>50) issues.push("PDF has many form fields; consider flattening.");
+
+    // Progress simulation
+    progressFill.style.width="50%";
+    await new Promise(r=>setTimeout(r,500));
+
+    let reportText = `PDF Validation Report:\n- Pages: ${pageCount}\n`;
+    reportText += issues.length ? `Issues found:\n- ${issues.join("\n- ")}\n` : "No major issues found.\n";
+    reportText += "\nQuick-Fix Suggestions:\n";
+    if(issues.length) reportText += "- Try re-saving the PDF using a PDF editor.\n- Flatten forms if there are many fields.\n- Check for corrupted content.";
+    else reportText += "- No fixes required.";
+
+    progressFill.style.width="100%";
+    statusText.textContent="Validation complete!";
+    report.value = reportText;
+
+  }catch(e){
+    progressFill.style.width="100%";
+    statusText.textContent="Validation failed!";
+    report.value = `Error loading PDF: ${e.message}\nQuick Fix: Try uploading a valid PDF file.`;
+  }
+});
+</script>
+</body>
+</html>
