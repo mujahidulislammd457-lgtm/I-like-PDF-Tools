@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reorder PDF Pages</title>
+<style>
+body{margin:0;padding:20px;font-family:Inter,Arial;background:#1E1E2F;color:#EAEAEA;}
+h1{text-align:center;color:#FFD700;margin-bottom:20px;}
+.container{max-width:600px;margin:0 auto;background:#2A2A3D;padding:20px;border-radius:12px;}
+input[type=file],button{width:100%;padding:12px;margin-top:10px;border-radius:8px;background:#353646;border:none;color:#EAEAEA;font-size:16px;}
+button{background:#FFD700;color:#000;font-weight:bold;cursor:pointer;}
+.progress-bar{width:100%;height:20px;background:#333;border-radius:10px;margin-top:15px;overflow:hidden;}
+.progress-fill{height:100%;width:0%;background:#4caf50;transition:width 0.3s ease;}
+#status{text-align:center;margin-top:10px;color:#AAB0C0;font-size:14px;}
+#pagesContainer{margin-top:15px; display:flex; flex-wrap:wrap; gap:8px;}
+.pageBtn{padding:8px 12px; background:#353646; border-radius:6px; cursor:grab; user-select:none;}
+.pageBtn.dragging{opacity:0.5;}
+</style>
+</head>
+<body>
+<h1>Reorder PDF Pages</h1>
+<div class="container">
+  <input type="file" id="pdfInput" accept="application/pdf">
+  <div id="pagesContainer"></div>
+  <button id="reorderBtn">Reorder PDF</button>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <p id="status">No job started.</p>
+  <a id="downloadLink" href="#" style="display:none;"><button>Download Reordered PDF</button></a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+<script>
+const pdfInput = document.getElementById("pdfInput");
+const pagesContainer = document.getElementById("pagesContainer");
+const reorderBtn = document.getElementById("reorderBtn");
+const progressFill = document.getElementById("progressFill");
+const statusText = document.getElementById("status");
+const downloadLink = document.getElementById("downloadLink");
+
+let pdfDoc;
+let pageOrder = [];
+
+pdfInput.addEventListener("change", async ()=>{
+  if(!pdfInput.files[0]) return;
+  const pdfBytes = await pdfInput.files[0].arrayBuffer();
+  pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+
+  pagesContainer.innerHTML="";
+  pageOrder = [];
+
+  const pageCount = pdfDoc.getPageCount();
+  for(let i=0;i<pageCount;i++){
+    const btn = document.createElement("div");
+    btn.className="pageBtn";
+    btn.textContent=`Page ${i+1}`;
+    btn.dataset.page=i;
+    btn.draggable = true;
+
+    btn.addEventListener("dragstart", e=>{
+      btn.classList.add("dragging");
+      e.dataTransfer.setData("text/plain", btn.dataset.page);
+    });
+    btn.addEventListener("dragend", ()=> btn.classList.remove("dragging"));
+
+    btn.addEventListener("dragover", e=>{
+      e.preventDefault();
+      const draggingEl = document.querySelector(".dragging");
+      if(draggingEl && draggingEl!==btn){
+        const nodes = Array.from(pagesContainer.children);
+        const draggingIndex = nodes.indexOf(draggingEl);
+        const targetIndex = nodes.indexOf(btn);
+        if(draggingIndex<targetIndex) pagesContainer.insertBefore(draggingEl, btn.nextSibling);
+        else pagesContainer.insertBefore(draggingEl, btn);
+      }
+    });
+
+    pagesContainer.appendChild(btn);
+    pageOrder.push(i);
+  }
+});
+
+reorderBtn.addEventListener("click", async ()=>{
+  if(!pdfDoc) return alert("Upload a PDF first!");
+
+  const nodes = Array.from(pagesContainer.children);
+  const newOrder = nodes.map(n=>parseInt(n.dataset.page));
+
+  statusText.textContent="Reordering pages...";
+  progressFill.style.width="0%";
+  downloadLink.style.display="none";
+
+  let progress=0;
+  const interval=setInterval(()=>{ progress+=20; if(progress>90) progress=90; progressFill.style.width=progress+"%"; },200);
+
+  const newPdfDoc = await PDFLib.PDFDocument.create();
+  for(const idx of newOrder){
+    const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [idx]);
+    newPdfDoc.addPage(copiedPage);
+  }
+
+  const pdfBytes = await newPdfDoc.save();
+  clearInterval(interval);
+  progressFill.style.width="100%";
+  statusText.textContent="Pages reordered!";
+
+  const blob = new Blob([pdfBytes], {type:"application/pdf"});
+  downloadLink.href = URL.createObjectURL(blob);
+  downloadLink.style.display="block";
+});
+</script>
+</body>
+</html>
